@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+</head>
+<body>
+    <h1>Добро пожаловать, {{ user.username }}!</h1>
+    <p>Это ваш личный кабинет.</p>
+    <a href="{% url 'index' %}">На главную</a>
+</body>
+</html>
