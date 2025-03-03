@@ -6,9 +6,8 @@
 </head>
 <body>
     <h1>Регистрация</h1>
-    <form method="post">
+    <form method="POST" action="/api/register/">
         {% csrf_token %}
-        {{ form.as_p }}
         <button type="submit">Зарегистрироваться</button>
     </form>
     <a href="{% url 'index' %}">На главную</a>
