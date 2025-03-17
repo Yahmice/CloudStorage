@@ -1,0 +1,11 @@
+npm i -d axios
+npm i -d react-router-dom
+npm i -d react-dom
+npm i -d react-scripts
+npm i -d react-bootstrap
+
+
+
+
+
+

@@ -1,12 +1,32 @@
-import { Link } from "react-router-dom";
-import Buttons from '../components/Buttons.jsx'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './Home.css';
 
 const Home = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="welcome">Добро пожаловать!</h1>
-      <p>Выберите действие:</p>
-      <Buttons />
+    <div className="home-container">
+      <div className="home-content">
+        <h1>Добро пожаловать в Cloud Storage</h1>
+        <p className="home-description">
+          Безопасное хранение и управление вашими файлами в облаке
+        </p>
+        <div className="home-buttons">
+          <Link to="/login" className="home-button primary">
+            Войти
+          </Link>
+          <Link to="/register" className="home-button secondary">
+            Регистрация
+          </Link>
+        </div>
+        <a 
+          href="http://127.0.0.1:8000/admin/" 
+          className="admin-button"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Панель администратора
+        </a>
+      </div>
     </div>
   );
 };

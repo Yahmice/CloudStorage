@@ -1,58 +1,162 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import './Register.css';
+import './auth.css';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
+    password_confirm: ""
   });
-
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Очищаем ошибку поля при изменении
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
   };
-
-  console.log("Отправляемые данные:", formData);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("")
+    setIsLoading(true);
+    setErrors({});
+
     try {
       const response = await fetch('http://127.0.0.1:8000/api/register/', {
         method: "POST",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password
-        }),
+        headers: { 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify(formData),
       });
 
-      const responseData = await response.json(); 
+      const data = await response.json();
+      console.log("Ответ сервера:", data);
 
-      console.log("Ответ сервера:", responseData);
-
-      if (!response.ok) throw new Error("Ошибка регистрации");
-      alert("Регистрация успешна!");
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user_id', data.user_id);
+        localStorage.setItem('username', data.username);
+        navigate('/dashboard');
+      } else {
+        const newErrors = {};
+        // Обработка ошибок валидации с бэкенда
+        if (typeof data === 'object') {
+          Object.keys(data).forEach(key => {
+            if (Array.isArray(data[key])) {
+              newErrors[key] = data[key][0];
+            } else {
+              newErrors[key] = data[key];
+            }
+          });
+        } else {
+          newErrors.general = "Ошибка регистрации";
+        }
+        setErrors(newErrors);
+      }
     } catch (err) {
-      setError(err.message);
+      console.error("Ошибка:", err);
+      setErrors({ general: "Ошибка сети, попробуйте позже" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="register-container">
       <h2>Регистрация</h2>
-      {error && <p className="error-message">{error}</p>}
+      {errors.general && (
+        <div className="error-message general-error">
+          {errors.general}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
-        <input type="text" name="username" placeholder="Логин" value={formData.username} onChange={handleChange} required />
-        <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Пароль" value={formData.password} onChange={handleChange} required />
-        <button type="submit">Зарегистрироваться</button>
+        <div className="form-group">
+          <label htmlFor="username">Логин:</label>
+          <input 
+            type="text" 
+            id="username"
+            name="username" 
+            value={formData.username} 
+            onChange={handleChange} 
+            className={errors.username ? "error-input" : ""}
+            required 
+          />
+          {errors.username && (
+            <div className="error-message">{errors.username}</div>
+          )}
+        </div>
+        <div className="form-group">
+          <label htmlFor="email">Email:</label>
+          <input 
+            type="email" 
+            id="email"
+            name="email" 
+            value={formData.email} 
+            onChange={handleChange} 
+            className={errors.email ? "error-input" : ""}
+            required 
+          />
+          {errors.email && (
+            <div className="error-message">{errors.email}</div>
+          )}
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Пароль:</label>
+          <input 
+            type="password" 
+            id="password"
+            name="password" 
+            value={formData.password} 
+            onChange={handleChange} 
+            className={errors.password ? "error-input" : ""}
+            required 
+          />
+          {errors.password && (
+            <div className="error-message">{errors.password}</div>
+          )}
+        </div>
+        <div className="form-group">
+          <label htmlFor="password_confirm">Подтверждение пароля:</label>
+          <input 
+            type="password" 
+            id="password_confirm"
+            name="password_confirm" 
+            value={formData.password_confirm} 
+            onChange={handleChange} 
+            className={errors.password_confirm ? "error-input" : ""}
+            required 
+          />
+          {errors.password_confirm && (
+            <div className="error-message">{errors.password_confirm}</div>
+          )}
+        </div>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "Регистрация..." : "Зарегистрироваться"}
+        </button>
+        <div className="auth-links">
+          <p>Уже есть аккаунт? <Link to="/login">Войти</Link></p>
+        </div>
       </form>
+      <Link to="/" className="back-button">
+        <span className="back-arrow">←</span> На главную
+      </Link>
     </div>
   );
 };
-  
-  export default Register;
+
+export default Register;
   
