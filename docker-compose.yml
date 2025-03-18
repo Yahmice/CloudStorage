@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   frontend:
@@ -17,9 +17,7 @@ services:
       - dev
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: python:3.10.12-slim
     ports:
       - "8000:8000"
     volumes:
