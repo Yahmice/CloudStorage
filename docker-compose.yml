@@ -17,7 +17,9 @@ services:
       - dev
 
   backend:
-    image: python:3.10.12-slim
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
