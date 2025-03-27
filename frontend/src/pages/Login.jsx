@@ -33,11 +33,17 @@ const Login = () => {
     setLoading(true);
 
     try {
+      const csrfResponse = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/login/`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/login/`, {
-        method: "POST",
-        credentials: 'include',  // Важно для работы с сессиями
-        headers: { 
+        method: 'POST',
+        credentials: 'include',
+        headers: {
           'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
         },
         body: JSON.stringify({ username: formData.username, password: formData.password })
       });
@@ -45,16 +51,23 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Больше не сохраняем токен
         navigate('/dashboard');
       } else {
         setError(data.error || 'Произошла ошибка при входе');
       }
     } catch (error) {
+      console.error('Ошибка:', error);
       setError('Произошла ошибка при подключении к серверу');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Функция для получения значения cookie по имени
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
   };
 
   return (

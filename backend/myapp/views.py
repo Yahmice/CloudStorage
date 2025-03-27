@@ -19,6 +19,7 @@ from .serializers import (
     FileStorageSerializer
 )
 import uuid
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -63,18 +64,21 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
+    @method_decorator(csrf_protect)
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
             login(request, user)
-            return Response({
+            response = Response({
                 'user_id': user.id,
                 'username': user.username
             })
+            return response
         return Response({
             'error': 'Неверное имя пользователя или пароль'
         }, status=status.HTTP_401_UNAUTHORIZED)
@@ -82,6 +86,7 @@ class LoginView(APIView):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@ensure_csrf_cookie
 def logout_view(request):
     try:
         logout(request)

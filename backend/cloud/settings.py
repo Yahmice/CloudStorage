@@ -56,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 # Настройки CORS
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -65,9 +65,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
-    "http://172.18.0.2:3000",
-    "http://172.18.0.2:5173",
-    "http://172.18.0.2:3001",
     "http://89.104.67.132:3000",
     "http://89.104.67.132:5174",
     "http://89.104.67.132:8000",
@@ -105,7 +102,21 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_SECURE = True 
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_DOMAIN = '89.104.67.132'  # Домен для cookie
+
 # CSRF settings
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_DOMAIN = '89.104.67.132'  # Домен для CSRF cookie
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -118,8 +129,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://89.104.67.132:8000",
     "http://89.104.67.132",
 ]
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
 
 AUTH_USER_MODEL = 'myapp.CustomUser'
 
@@ -203,10 +212,3 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Session settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
