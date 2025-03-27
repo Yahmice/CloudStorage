@@ -111,7 +111,7 @@ const FileList = ({ files, onDelete, onRename, onDownload, onCopyLink, isAdmin }
 FileList.propTypes = {
   files: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.number.isRequired,
+      id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
       comment: PropTypes.string,
       size: PropTypes.number.isRequired,

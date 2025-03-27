@@ -5,7 +5,7 @@ import FileUpload from '../components/FileStorage/FileUpload';
 import Navbar from '../components/Navigation/Navbar';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
@@ -41,7 +41,7 @@ const Dashboard = () => {
         }
         
         const data = await response.json();
-        setIsAdmin(data.is_staff);
+        setIsAdmin(data.is_admin);
         fetchFiles();
       } catch (err) {
         console.error('Ошибка при проверке авторизации:', err);
@@ -122,7 +122,7 @@ const Dashboard = () => {
 
   const handleRename = async (fileId, newName) => {
     try {
-      const response = await fetch(`${API_URL}/files/${fileId}/`, {
+      const response = await fetch(`${API_URL}/files/${fileId}/rename/`, {
         method: 'PATCH',
         headers: {
           ...getHeaders(),

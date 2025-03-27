@@ -16,39 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
-from myapp.views import (
-    UserProfileView, RegisterView, LoginView, logout_view,
-    AdminView, AdminUserViewSet, FileListView, FileUploadView, 
-    FileDetailView, FileDownloadView, FileShareView, FileRenameView,
-    SharedFileView
-)
-
-# Создаем роутер для АПИ
-router = DefaultRouter()
-router.register(r'admin/users', AdminUserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('admin-panel/', AdminView.as_view(), name='admin-panel'),
-    path('api/', include(router.urls)),
-    path('api/register/', RegisterView.as_view(), name='register'),
-    path('api/login/', LoginView.as_view(), name='login'),
-    path('api/logout/', logout_view, name='logout'),
-    path('api/profile/', UserProfileView.as_view(), name='user-profile'),
-    
-    # Основные операции с файлами
-    path('api/files/', FileListView.as_view(), name='file-list'),
-    path('api/files/upload/', FileUploadView.as_view(), name='file-upload'),
-    path('api/files/<uuid:pk>/', FileDetailView.as_view(), name='file-detail'),
-    
-    # Дополнительные действия с файлами
-    path('api/files/<uuid:pk>/download/', FileDownloadView.as_view(), name='file-download'),
-    path('api/files/<uuid:pk>/share/', FileShareView.as_view(), name='file-share'),
-    path('api/files/<uuid:pk>/rename/', FileRenameView.as_view(), name='file-rename'),
-    
-    # Доступ к файлам по общей ссылке
-    path('api/files/shared/<uuid:share_link>/', SharedFileView.as_view(), name='shared-file'),
+    path('api/', include('myapp.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -18,7 +18,7 @@ from .serializers import (
     UserUpdateSerializer, AdminUserSerializer, FileStorageUploadSerializer,
     FileStorageSerializer
 )
-
+import uuid
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -90,28 +90,14 @@ def logout_view(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# Разрешение только для администраторов
+
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated and request.user.is_admin
 
 
-# Вьюшка для административного интерфейса
-@method_decorator(login_required, name='dispatch')
-class AdminView(View):
-    def get(self, request):
-        if not request.user.is_admin:
-            return redirect('profile')
-        
-        users = CustomUser.objects.all().prefetch_related('storage')
-        context = {
-            'users': users,
-        }
-        return render(request, 'admin/admin_panel.html', context)
-
-# Вьюшка для административного интерфейса
 class AdminUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all().prefetch_related('storage')
+    queryset = CustomUser.objects.all()
     serializer_class = AdminUserSerializer
     permission_classes = [IsAdminUser]
 
@@ -123,20 +109,16 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         return Response({'status': 'success', 'is_admin': user.is_admin})
 
     @action(detail=True, methods=['get'])
-    def storage(self, request, pk=None):
+    def storage_info(self, request, pk=None):
         user = self.get_object()
-        storage = user.storage.first()
-        if not storage:
-            storage = FileStorage.objects.create(user=user)
-        serializer = FileStorageSerializer(storage)
-        return Response(serializer.data)
+        return Response(user.get_storage_info())
 
-# Вьюшка для просмотра файлов
+
 class FileListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if request.user.is_staff:
+        if request.user.is_admin:
             files = FileStorage.objects.all()
         else:
             files = FileStorage.objects.filter(owner=request.user)
@@ -144,7 +126,7 @@ class FileListView(APIView):
         serializer = FileStorageSerializer(files, many=True, context={'request': request})
         return Response(serializer.data)
 
-# Вьюшка для загрузки файлов
+
 class FileUploadView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -158,7 +140,7 @@ class FileUploadView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Вьюшка для просмотра файлов
+
 class FileDetailView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
@@ -175,23 +157,7 @@ class FileDetailView(APIView):
         file_storage.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def patch(self, request, pk):
-        file_storage = self.get_object(pk)
-        new_name = request.data.get('name')
-        
-        if not new_name:
-            return Response(
-                {'error': 'Новое имя файла не указано'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        file_storage.name = new_name
-        file_storage.save()
-        
-        serializer = FileStorageSerializer(file_storage, context={'request': request})
-        return Response(serializer.data)
 
-# Вьюшка для скачивания файлов
 class FileDownloadView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
@@ -203,7 +169,7 @@ class FileDownloadView(APIView):
         file_storage.update_last_download()
         return FileResponse(file_storage.file, as_attachment=True)
 
-# Вьюшка для создания ссылки на файл
+
 class FileShareView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
@@ -213,14 +179,14 @@ class FileShareView(APIView):
     def get(self, request, pk):
         file_storage = self.get_object(pk)
         if not file_storage.share_link:
-            file_storage.share_link = timezone.now()
+            file_storage.share_link = uuid.uuid4()
             file_storage.share_link_expiry = timezone.now() + timedelta(days=7)
             file_storage.save()
         
         share_url = f"{request.build_absolute_uri('/')[:-1]}/api/files/shared/{file_storage.share_link}/"
         return Response({'share_link': share_url})
 
-# Вьюшка для переименования файлов
+
 class FileRenameView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
 
@@ -243,7 +209,7 @@ class FileRenameView(APIView):
         serializer = FileStorageSerializer(file_storage, context={'request': request})
         return Response(serializer.data)
 
-# Вьюшка для просмотра файлов через хранилище
+
 class SharedFileView(APIView):
     permission_classes = [AllowAny]
 
