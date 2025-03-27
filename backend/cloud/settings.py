@@ -37,11 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
-    'myapp',
     'rest_framework',
     'rest_framework.authtoken',
-    'cloud',
+    'corsheaders',
+    'myapp',
 ]
 
 MIDDLEWARE = [
@@ -59,20 +58,21 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://89.104.67.132",
+    "http://89.104.67.132:8000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://89.104.67.132",
-    "http://89.104.67.132:3000",
-    "http://89.104.67.132:5174",
-    "http://89.104.67.132:8000"
 ]
 
-# Дополнительные настройки CORS
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -85,6 +85,25 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    "http://89.104.67.132",
+    "http://89.104.67.132:8000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_NAME = 'csrftoken'
+
+# Session settings
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 1209600  # 2 недели в секундах
+
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -94,34 +113,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
-
-# Session settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_NAME = 'sessionid'
-SESSION_COOKIE_SECURE = False  # Изменено на False для http
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_DOMAIN = None  # Убираем явное указание домена
-
-# CSRF settings
-CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_COOKIE_SECURE = False  # Изменено на False для http
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_DOMAIN = None  # Убираем явное указание домена
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://89.104.67.132",
-    "http://89.104.67.132:3000",
-    "http://89.104.67.132:5174",
-    "http://89.104.67.132:8000"
-]
 
 AUTH_USER_MODEL = 'myapp.CustomUser'
 
