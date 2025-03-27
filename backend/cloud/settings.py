@@ -88,21 +88,21 @@ CORS_ALLOW_HEADERS = [
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     "http://89.104.67.132",
-    "http://89.104.67.132:8000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
 ]
 
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_NAME = 'csrftoken'
-
 # Session settings
+SESSION_COOKIE_DOMAIN = None
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_AGE = 1209600  # 2 недели в секундах
+
+# CSRF settings
+CSRF_COOKIE_DOMAIN = None
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_NAME = 'csrftoken'
 
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
