@@ -129,42 +129,49 @@ const FileManager = () => {
     const [error, setError] = useState(null);
 
     // Загрузка списка файлов
-    const fetchFiles = useCallback(async () => {
+    const fetchFiles = async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/files/`, {
-                headers: {
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                }
+            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/files/`, {
+                credentials: 'include'
             });
-            setFiles(response.data);
-        } catch (err) {
-            setError('Ошибка при загрузке списка файлов');
-            console.error(err);
-            if (err.response?.status === 401) {
-                // Если токен недействителен, перенаправляем на страницу входа
-                window.location.href = '/login';
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                throw new Error('Ошибка при загрузке файлов');
             }
+            const data = await response.json();
+            setFiles(data);
+        } catch (error) {
+            console.error('Ошибка:', error);
+            setError('Не удалось загрузить файлы');
         }
-    }, []);
+    };
 
     useEffect(() => {
         fetchFiles();
-    }, [fetchFiles]);
+    }, []);
 
     // Обработчик загрузки файла
     const handleUpload = async (formData) => {
         setLoading(true);
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/files/`, formData, {
-                headers: {
-                    'Authorization': `Token ${localStorage.getItem('token')}`,
-                    'Content-Type': 'multipart/form-data'
-                }
+            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/files/upload/`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
             });
-            await fetchFiles();
-        } catch (err) {
-            setError('Ошибка при загрузке файла');
-            console.error(err);
+
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке файла');
+            }
+
+            const data = await response.json();
+            setFiles(prevFiles => [...prevFiles, data]);
+        } catch (error) {
+            console.error('Ошибка:', error);
+            setError('Не удалось загрузить файл');
         }
         setLoading(false);
     };
@@ -176,15 +183,19 @@ const FileManager = () => {
         }
 
         try {
-            await axios.delete(`${process.env.REACT_APP_API_URL}/api/files/${fileId}/`, {
-                headers: {
-                    'Authorization': `Token ${localStorage.getItem('token')}`
-                }
+            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/files/${fileId}/`, {
+                method: 'DELETE',
+                credentials: 'include'
             });
-            await fetchFiles();
-        } catch (err) {
-            setError('Ошибка при удалении файла');
-            console.error(err);
+
+            if (!response.ok) {
+                throw new Error('Ошибка при удалении файла');
+            }
+
+            setFiles(prevFiles => prevFiles.filter(f => f.id !== fileId));
+        } catch (error) {
+            console.error('Ошибка:', error);
+            setError('Не удалось удалить файл');
         }
     };
 
@@ -196,19 +207,26 @@ const FileManager = () => {
         }
 
         try {
-            await axios.post(
-                `${process.env.REACT_APP_API_URL}/api/files/${fileId}/rename/`,
-                { new_name: newName },
-                {
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('token')}`
-                    }
-                }
-            );
-            await fetchFiles();
-        } catch (err) {
-            setError('Ошибка при переименовании файла');
-            console.error(err);
+            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/files/${fileId}/rename/`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: newName })
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при переименовании файла');
+            }
+
+            const updatedFile = await response.json();
+            setFiles(prevFiles => prevFiles.map(file => 
+                file.id === fileId ? updatedFile : file
+            ));
+        } catch (error) {
+            console.error('Ошибка:', error);
+            setError('Не удалось переименовать файл');
         }
     };
 

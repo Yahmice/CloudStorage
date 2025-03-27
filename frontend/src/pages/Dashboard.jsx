@@ -25,26 +25,19 @@ const Dashboard = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-      
       try {
-        const response = await fetch(`${API_URL}/profile/`, {
-          headers: getHeaders()
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/profile/`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
-        
+
         if (!response.ok) {
-          throw new Error('Ошибка авторизации');
+          navigate('/login');
         }
-        
-        const data = await response.json();
-        setIsAdmin(data.is_admin);
-        fetchFiles();
-      } catch (err) {
-        console.error('Ошибка при проверке авторизации:', err);
+      } catch (error) {
+        console.error('Ошибка при проверке аутентификации:', error);
         navigate('/login');
       }
     };
@@ -183,6 +176,21 @@ const Dashboard = () => {
       setSuccessMessage('Ссылка скопирована в буфер обмена');
     } catch (err) {
       setError('Ошибка при копировании ссылки');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/api/logout/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      navigate('/login');
+    } catch (error) {
+      console.error('Ошибка при выходе:', error);
     }
   };
 

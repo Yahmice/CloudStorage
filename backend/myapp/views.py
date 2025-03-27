@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from django.http import FileResponse
@@ -70,9 +70,8 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            token, _ = Token.objects.get_or_create(user=user)
+            login(request, user)
             return Response({
-                'token': token.key,
                 'user_id': user.id,
                 'username': user.username
             })
@@ -85,7 +84,7 @@ class LoginView(APIView):
 @permission_classes([IsAuthenticated])
 def logout_view(request):
     try:
-        request.user.auth_token.delete()
+        logout(request)
         return Response({'message': 'Успешный выход из системы'})
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

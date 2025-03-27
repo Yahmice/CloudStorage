@@ -9,8 +9,8 @@ const Login = () => {
     username: '',
     password: ''
   });
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,8 +19,8 @@ const Login = () => {
       [name]: value
     }));
     // Очищаем ошибку поля при изменении
-    if (errors[name]) {
-      setErrors(prev => ({
+    if (error[name]) {
+      setError(prev => ({
         ...prev,
         [name]: ""
       }));
@@ -29,59 +29,40 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
+    setError('');
+    setLoading(true);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/login/`, {
         method: "POST",
+        credentials: 'include',  // Важно для работы с сессиями
         headers: { 
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ username: formData.username, password: formData.password })
       });
 
       const data = await response.json();
-      console.log('Ответ сервера:', data);
 
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('username', data.username);
+        // Больше не сохраняем токен
         navigate('/dashboard');
       } else {
-        const newErrors = {};
-        // Обработка ошибок с бэкенда
-        if (typeof data === 'object') {
-          Object.keys(data).forEach(key => {
-            if (Array.isArray(data[key])) {
-              newErrors[key] = data[key][0];
-            } else {
-              newErrors[key] = data[key];
-            }
-          });
-          if (data.detail) {
-            newErrors.general = data.detail;
-          }
-        } else {
-          newErrors.general = "Ошибка входа";
-        }
-        setErrors(newErrors);
+        setError(data.error || 'Произошла ошибка при входе');
       }
-    } catch (err) {
-      console.error('Ошибка:', err);
-      setErrors({ general: "Ошибка сети, попробуйте позже" });
+    } catch (error) {
+      setError('Произошла ошибка при подключении к серверу');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-container">
       <h2>Вход в систему</h2>
-      {errors.general && (
+      {error && (
         <div className="error-message general-error">
-          {errors.general}
+          {error}
         </div>
       )}
       <form onSubmit={handleSubmit}>
@@ -93,11 +74,11 @@ const Login = () => {
             name="username"
             value={formData.username}
             onChange={handleChange}
-            className={errors.username ? "error-input" : ""}
+            className={error.username ? "error-input" : ""}
             required
           />
-          {errors.username && (
-            <div className="error-message">{errors.username}</div>
+          {error.username && (
+            <div className="error-message">{error.username}</div>
           )}
         </div>
         <div className="form-group">
@@ -108,15 +89,15 @@ const Login = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className={errors.password ? "error-input" : ""}
+            className={error.password ? "error-input" : ""}
             required
           />
-          {errors.password && (
-            <div className="error-message">{errors.password}</div>
+          {error.password && (
+            <div className="error-message">{error.password}</div>
           )}
         </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Вход...' : 'Войти'}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Вход...' : 'Войти'}
         </button>
         <div className="auth-links">
           <p>Нет аккаунта? <Link to="/register">Зарегистрироваться</Link></p>

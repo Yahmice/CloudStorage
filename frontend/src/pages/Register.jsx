@@ -11,8 +11,8 @@ const Register = () => {
     password: "",
     password_confirm: ""
   });
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,8 +21,8 @@ const Register = () => {
       [name]: value
     }));
     // Очищаем ошибку поля при изменении
-    if (errors[name]) {
-      setErrors(prev => ({
+    if (error[name]) {
+      setError(prev => ({
         ...prev,
         [name]: ""
       }));
@@ -31,56 +31,39 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
+    setError('');
+    setLoading(true);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/register/`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
-      console.log("Ответ сервера:", data);
 
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('username', data.username);
-        navigate('/dashboard');
+        navigate('/login');
       } else {
-        const newErrors = {};
-        // Обработка ошибок валидации с бэкенда
-        if (typeof data === 'object') {
-          Object.keys(data).forEach(key => {
-            if (Array.isArray(data[key])) {
-              newErrors[key] = data[key][0];
-            } else {
-              newErrors[key] = data[key];
-            }
-          });
-        } else {
-          newErrors.general = "Ошибка регистрации";
-        }
-        setErrors(newErrors);
+        setError(data.error || 'Произошла ошибка при регистрации');
       }
-    } catch (err) {
-      console.error("Ошибка:", err);
-      setErrors({ general: "Ошибка сети, попробуйте позже" });
+    } catch (error) {
+      setError('Произошла ошибка при подключении к серверу');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="register-container">
       <h2>Регистрация</h2>
-      {errors.general && (
+      {error && (
         <div className="error-message general-error">
-          {errors.general}
+          {error}
         </div>
       )}
       <form onSubmit={handleSubmit}>
@@ -92,11 +75,11 @@ const Register = () => {
             name="username" 
             value={formData.username} 
             onChange={handleChange} 
-            className={errors.username ? "error-input" : ""}
+            className={error.username ? "error-input" : ""}
             required 
           />
-          {errors.username && (
-            <div className="error-message">{errors.username}</div>
+          {error.username && (
+            <div className="error-message">{error.username}</div>
           )}
         </div>
         <div className="form-group">
@@ -107,11 +90,11 @@ const Register = () => {
             name="email" 
             value={formData.email} 
             onChange={handleChange} 
-            className={errors.email ? "error-input" : ""}
+            className={error.email ? "error-input" : ""}
             required 
           />
-          {errors.email && (
-            <div className="error-message">{errors.email}</div>
+          {error.email && (
+            <div className="error-message">{error.email}</div>
           )}
         </div>
         <div className="form-group">
@@ -122,11 +105,11 @@ const Register = () => {
             name="password" 
             value={formData.password} 
             onChange={handleChange} 
-            className={errors.password ? "error-input" : ""}
+            className={error.password ? "error-input" : ""}
             required 
           />
-          {errors.password && (
-            <div className="error-message">{errors.password}</div>
+          {error.password && (
+            <div className="error-message">{error.password}</div>
           )}
         </div>
         <div className="form-group">
@@ -137,15 +120,15 @@ const Register = () => {
             name="password_confirm" 
             value={formData.password_confirm} 
             onChange={handleChange} 
-            className={errors.password_confirm ? "error-input" : ""}
+            className={error.password_confirm ? "error-input" : ""}
             required 
           />
-          {errors.password_confirm && (
-            <div className="error-message">{errors.password_confirm}</div>
+          {error.password_confirm && (
+            <div className="error-message">{error.password_confirm}</div>
           )}
         </div>
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "Регистрация..." : "Зарегистрироваться"}
+        <button type="submit" disabled={loading}>
+          {loading ? "Регистрация..." : "Зарегистрироваться"}
         </button>
         <div className="auth-links">
           <p>Уже есть аккаунт? <Link to="/login">Войти</Link></p>
