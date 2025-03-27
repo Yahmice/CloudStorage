@@ -71,6 +71,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://89.104.67.132:3000",
     "http://89.104.67.132:5174",
     "http://89.104.67.132:8000",
+    "http://89.104.67.132",
 ]
 
 CORS_ALLOW_METHODS = [
