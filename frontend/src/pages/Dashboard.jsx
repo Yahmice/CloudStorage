@@ -26,7 +26,7 @@ const Dashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/profile/`, {
+        const response = await fetch(`${API_URL}/profile/`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
