@@ -87,7 +87,7 @@ CORS_ALLOW_HEADERS = [
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
-    "http://89.104.67.132",
+   "http://89.104.67.132",
 ]
 
 # Session settings

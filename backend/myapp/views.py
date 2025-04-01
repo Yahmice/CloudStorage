@@ -68,20 +68,28 @@ class RegisterView(APIView):
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
+    def get(self, request):
+        return Response({'detail': 'CSRF cookie set'})
+
     @method_decorator(csrf_protect)
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            login(request, user)
-            response = Response({
-                'user_id': user.id,
-                'username': user.username
-            })
-            return response
-        return Response({
-            'error': 'Неверное имя пользователя или пароль'
-        }, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                user = serializer.validated_data['user']
+                login(request, user)
+                response = Response({
+                    'user_id': user.id,
+                    'username': user.username
+                })
+                return response
+            return Response({
+                'error': 'Неверное имя пользователя или пароль'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
