@@ -20,6 +20,7 @@ from .serializers import (
 )
 import uuid
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.conf import settings
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -216,7 +217,8 @@ class FileShareView(APIView):
             file_storage.share_link_expiry = timezone.now() + timedelta(days=7)
             file_storage.save()
         
-        share_url = f"{request.build_absolute_uri('/')[:-1]}/api/files/shared/{file_storage.share_link}/"
+        base_url = settings.BASE_URL if hasattr(settings, 'BASE_URL') else request.build_absolute_uri('/')[:-1]
+        share_url = f"{base_url}/api/files/shared/{file_storage.share_link}/"
         print(f"Генерация ссылки: {share_url}")
         return Response({'share_link': share_url})
 
@@ -249,6 +251,7 @@ class SharedFileView(APIView):
 
     def get(self, request, share_link):
         try:
+            print(f"Попытка доступа к файлу по ссылке: {share_link}")
             file_storage = FileStorage.objects.get(
                 share_link=share_link,
                 share_link_expiry__gt=timezone.now()
@@ -258,7 +261,14 @@ class SharedFileView(APIView):
             response['Content-Disposition'] = f'attachment; filename="{file_storage.original_name}"'
             return response
         except FileStorage.DoesNotExist:
+            print(f"Файл не найден для ссылки: {share_link}")
             return Response(
                 {'error': 'Файл не найден или ссылка истекла'}, 
                 status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            print(f"Ошибка при доступе к файлу: {str(e)}")
+            return Response(
+                {'error': f'Произошла ошибка: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             ) 

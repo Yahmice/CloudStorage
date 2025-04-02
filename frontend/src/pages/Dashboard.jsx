@@ -219,8 +219,14 @@ const Dashboard = () => {
       // Преобразуем URL, чтобы он соответствовал текущему окружению
       const originalUrl = new URL(data.share_link);
       const baseUrl = getBaseUrl();
+      
+      // Получаем UUID из пути
+      // URL будет вида /api/files/shared/uuid/
+      const uuidMatch = originalUrl.pathname.match(/\/api\/files\/shared\/([^/]+)/);
+      const shareUuid = uuidMatch ? uuidMatch[1] : originalUrl.pathname.split('/').pop().replace('/', '');
+      
       // Формируем новый URL с нужным хостом
-      const shareUrl = `${baseUrl}/api/files/shared/${originalUrl.pathname.split('/').pop().replace('/', '')}`;
+      const shareUrl = `${baseUrl}/api/files/shared/${shareUuid}/`;
       console.log('Сформированная ссылка:', shareUrl);
 
       try {
