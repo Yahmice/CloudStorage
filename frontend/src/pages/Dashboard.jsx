@@ -7,6 +7,11 @@ import './Dashboard.css';
 
 const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
+// Функция для получения базового URL в зависимости от окружения
+const getBaseUrl = () => {
+  return import.meta.env.VITE_SERVER_URL;
+};
+
 const getHeaders = () => {
   const csrfToken = document.cookie.split('; ')
     .find(row => row.startsWith('csrftoken='))
@@ -211,17 +216,24 @@ const Dashboard = () => {
         throw new Error('Ссылка для копирования не найдена в ответе сервера');
       }
 
+      // Преобразуем URL, чтобы он соответствовал текущему окружению
+      const originalUrl = new URL(data.share_link);
+      const baseUrl = getBaseUrl();
+      // Формируем новый URL с нужным хостом
+      const shareUrl = `${baseUrl}/api/files/shared/${originalUrl.pathname.split('/').pop().replace('/', '')}`;
+      console.log('Сформированная ссылка:', shareUrl);
+
       try {
-        await navigator.clipboard.writeText(data.share_link);
+        await navigator.clipboard.writeText(shareUrl);
         setSuccessMessage('Ссылка скопирована в буфер обмена');
       } catch (clipboardError) {
         console.error('Ошибка при копировании в буфер обмена:', clipboardError);
         // Показываем ссылку пользователю
-        setSuccessMessage(`Ссылка: ${data.share_link} (скопируйте вручную)`);
+        setSuccessMessage(`Ссылка: ${shareUrl} (скопируйте вручную)`);
         
         // Альтернативный способ копирования через DOM (не требует разрешений)
         const textarea = document.createElement('textarea');
-        textarea.value = data.share_link;
+        textarea.value = shareUrl;
         document.body.appendChild(textarea);
         textarea.focus();
         textarea.select();
@@ -231,10 +243,10 @@ const Dashboard = () => {
           if (successful) {
             setSuccessMessage('Ссылка скопирована в буфер обмена');
           } else {
-            setSuccessMessage(`Ссылка: ${data.share_link} (скопируйте вручную)`);
+            setSuccessMessage(`Ссылка: ${shareUrl} (скопируйте вручную)`);
           }
         } catch (e) {
-          setSuccessMessage(`Ссылка: ${data.share_link} (скопируйте вручную)`);
+          setSuccessMessage(`Ссылка: ${shareUrl} (скопируйте вручную)`);
         }
         
         document.body.removeChild(textarea);
