@@ -77,12 +77,9 @@ const Dashboard = () => {
     formData.append('comment', comment);
 
     try {
-      const headers = getHeaders();
-      delete headers['Content-Type'];
-
       const response = await fetch(`${API_URL}/files/upload/`, {
         method: 'POST',
-        headers: headers,
+        credentials: 'include',
         body: formData
       });
 
