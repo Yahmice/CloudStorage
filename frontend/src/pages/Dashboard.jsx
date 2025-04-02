@@ -8,9 +8,13 @@ import './Dashboard.css';
 const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
 const getHeaders = () => {
-  const token = localStorage.getItem('token');
+  const csrfToken = document.cookie.split('; ')
+    .find(row => row.startsWith('csrftoken='))
+    ?.split('=')[1];
+    
   return {
-    'Authorization': `Token ${token}`,
+    'Content-Type': 'application/json',
+    'X-CSRFToken': csrfToken,
     'Accept': 'application/json'
   };
 };
@@ -111,6 +115,7 @@ const Dashboard = () => {
     try {
       const response = await fetch(`${API_URL}/files/${file.id}/`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: getHeaders()
       });
 
@@ -127,11 +132,17 @@ const Dashboard = () => {
 
   const handleRename = async (fileId, newName) => {
     try {
+      // Получаем CSRF токен из куки
+      const csrfToken = document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
       const response = await fetch(`${API_URL}/files/${fileId}/rename/`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
-          ...getHeaders(),
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({ name: newName })
       });
@@ -150,6 +161,7 @@ const Dashboard = () => {
   const handleDownload = async (file) => {
     try {
       const response = await fetch(`${API_URL}/files/${file.id}/download/`, {
+        credentials: 'include',
         headers: getHeaders()
       });
 
@@ -176,6 +188,7 @@ const Dashboard = () => {
   const handleCopyLink = async (file) => {
     try {
       const response = await fetch(`${API_URL}/files/${file.id}/share/`, {
+        credentials: 'include',
         headers: getHeaders()
       });
 
