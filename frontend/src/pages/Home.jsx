@@ -19,7 +19,7 @@ const Home = () => {
           </Link>
         </div>
         <a 
-          href="http://127.0.0.1:8000/admin/" 
+          href={`${import.meta.env.VITE_SERVER_URL}/admin/`}
           className="admin-button"
           target="_blank"
           rel="noopener noreferrer"
