@@ -217,6 +217,7 @@ class FileShareView(APIView):
             file_storage.save()
         
         share_url = f"{request.build_absolute_uri('/')[:-1]}/api/files/shared/{file_storage.share_link}/"
+        print(f"Генерация ссылки: {share_url}")
         return Response({'share_link': share_url})
 
 

@@ -205,10 +205,43 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      await navigator.clipboard.writeText(data.share_link);
-      setSuccessMessage('Ссылка скопирована в буфер обмена');
+      console.log('Полученные данные для ссылки:', data);
+      
+      if (!data.share_link) {
+        throw new Error('Ссылка для копирования не найдена в ответе сервера');
+      }
+
+      try {
+        await navigator.clipboard.writeText(data.share_link);
+        setSuccessMessage('Ссылка скопирована в буфер обмена');
+      } catch (clipboardError) {
+        console.error('Ошибка при копировании в буфер обмена:', clipboardError);
+        // Показываем ссылку пользователю
+        setSuccessMessage(`Ссылка: ${data.share_link} (скопируйте вручную)`);
+        
+        // Альтернативный способ копирования через DOM (не требует разрешений)
+        const textarea = document.createElement('textarea');
+        textarea.value = data.share_link;
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            setSuccessMessage('Ссылка скопирована в буфер обмена');
+          } else {
+            setSuccessMessage(`Ссылка: ${data.share_link} (скопируйте вручную)`);
+          }
+        } catch (e) {
+          setSuccessMessage(`Ссылка: ${data.share_link} (скопируйте вручную)`);
+        }
+        
+        document.body.removeChild(textarea);
+      }
     } catch (err) {
-      setError('Ошибка при копировании ссылки');
+      console.error('Ошибка при копировании ссылки:', err);
+      setError(`Ошибка при копировании ссылки: ${err.message}`);
     }
   };
 
