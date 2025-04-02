@@ -100,18 +100,21 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Дополнительные настройки безопасности
-CSRF_COOKIE_SECURE = False  # Установите True в продакшене с HTTPS
-CSRF_COOKIE_HTTPONLY = False  # False чтобы JavaScript мог читать токен
-CSRF_USE_SESSIONS = False  # Отключаем использование сессий для CSRF
-CSRF_COOKIE_SAMESITE = None  # Отключаем SameSite для разработки
-SESSION_COOKIE_SECURE = False  # Установите True в продакшене с HTTPS
+CSRF_COOKIE_SECURE = False  
+CSRF_COOKIE_HTTPONLY = False  
+CSRF_USE_SESSIONS = False  
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False  
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = None  # Отключаем SameSite для разработки
+SESSION_COOKIE_SAMESITE = 'Lax'  
+SESSION_COOKIE_DOMAIN = None  # Автоматическое определение домена
+SESSION_SAVE_EVERY_REQUEST = True  # Сохранять сессию при каждом запросе
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Не удалять сессию при закрытии браузера
 
 # Настройки для административного интерфейса
-ADMIN_URL = 'admin/'  # URL для административного интерфейса
-CSRF_COOKIE_NAME = 'csrftoken'  # Имя CSRF cookie
-CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'  # Имя заголовка CSRF
+ADMIN_URL = 'admin/'  
+CSRF_COOKIE_NAME = 'csrftoken'  
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'  
 
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
@@ -128,7 +131,8 @@ AUTH_USER_MODEL = 'myapp.CustomUser'
 
 # Сессионные настройки
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600 
+SESSION_COOKIE_AGE = 1209600  # 2 недели в секундах
+SESSION_COOKIE_NAME = 'sessionid'
 
 ROOT_URLCONF = 'cloud.urls'
 
@@ -232,3 +236,9 @@ for directory in STORAGE_DIRS:
 # Настройки для загрузки файлов
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 FILE_UPLOAD_PERMISSIONS = 0o644
+
+# CORS Settings
+CORS_EXPOSE_HEADERS = [
+    "Content-Type",
+    "X-CSRFToken",
+]
