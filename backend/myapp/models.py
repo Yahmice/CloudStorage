@@ -44,7 +44,8 @@ class CustomUser(AbstractUser):
 
 class FileStorage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
+    original_name = models.CharField(max_length=255, default='')  # Добавляем значение по умолчанию
+    name = models.CharField(max_length=255)  # Уникальное имя файла в системе
     file = models.FileField(upload_to='files/')
     comment = models.TextField(blank=True, null=True)
     size = models.BigIntegerField()
@@ -55,13 +56,19 @@ class FileStorage(models.Model):
     share_link_expiry = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.name} ({self.owner.username})"
+        return f"{self.original_name} ({self.owner.username})"
 
     def save(self, *args, **kwargs):
         if not self.share_link:
             self.share_link = uuid.uuid4()
         if not self.share_link_expiry:
             self.share_link_expiry = timezone.now() + timezone.timedelta(days=7)
+        
+        # Генерируем уникальное имя файла
+        if not self.name:
+            file_ext = os.path.splitext(self.original_name)[1]
+            self.name = f"{self.id}{file_ext}"
+        
         super().save(*args, **kwargs)
 
     def update_last_download(self):
@@ -69,7 +76,7 @@ class FileStorage(models.Model):
         self.save()
 
     def get_file_path(self):
-        return os.path.join(self.owner.storage_path, str(self.id))
+        return os.path.join(self.owner.storage_path, self.name)
 
     def delete(self, *args, **kwargs):
         if self.file:

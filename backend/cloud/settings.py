@@ -196,3 +196,12 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Настройки для хранения файлов
+FILE_STORAGE_BASE_DIR = os.path.join(BASE_DIR, 'storage')
+FILE_STORAGE_URL = '/storage/'
+
+
+# Настройки для загрузки файлов
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+FILE_UPLOAD_PERMISSIONS = 0o644

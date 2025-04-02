@@ -143,14 +143,33 @@ class FileUploadView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = FileStorageUploadSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                FileStorageSerializer(serializer.instance, context={'request': request}).data,
-                status=status.HTTP_201_CREATED
+        try:
+            file_obj = request.FILES.get('file')
+            comment = request.data.get('comment', '')
+            
+            if not file_obj:
+                return Response(
+                    {'error': 'Файл не был предоставлен'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Создаем объект FileStorage
+            file_storage = FileStorage(
+                original_name=file_obj.name,
+                file=file_obj,
+                comment=comment,
+                size=file_obj.size,
+                owner=request.user
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            file_storage.save()
+
+            serializer = FileStorageSerializer(file_storage, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class FileDetailView(APIView):
@@ -179,7 +198,9 @@ class FileDownloadView(APIView):
     def get(self, request, pk):
         file_storage = self.get_object(pk)
         file_storage.update_last_download()
-        return FileResponse(file_storage.file, as_attachment=True)
+        response = FileResponse(file_storage.file, as_attachment=True)
+        response['Content-Disposition'] = f'attachment; filename="{file_storage.original_name}"'
+        return response
 
 
 class FileShareView(APIView):
@@ -232,7 +253,9 @@ class SharedFileView(APIView):
                 share_link_expiry__gt=timezone.now()
             )
             file_storage.update_last_download()
-            return FileResponse(file_storage.file, as_attachment=True)
+            response = FileResponse(file_storage.file, as_attachment=True)
+            response['Content-Disposition'] = f'attachment; filename="{file_storage.original_name}"'
+            return response
         except FileStorage.DoesNotExist:
             return Response(
                 {'error': 'Файл не найден или ссылка истекла'}, 

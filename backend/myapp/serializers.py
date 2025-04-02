@@ -85,21 +85,22 @@ class LoginSerializer(serializers.Serializer):
         return {'user': user}
 
 
-
 class FileStorageSerializer(serializers.ModelSerializer):
     owner_username = serializers.CharField(source='owner.username', read_only=True)
     is_owner = serializers.SerializerMethodField()
+    original_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = FileStorage
-        fields = ('id', 'name', 'comment', 'size', 'owner', 'owner_username', 
+        fields = ('id', 'original_name', 'name', 'comment', 'size', 'owner', 'owner_username', 
                  'upload_date', 'last_download', 'share_link', 'is_owner')
         read_only_fields = ('id', 'size', 'owner', 'upload_date', 'last_download', 'share_link')
 
     def get_is_owner(self, obj):
         request = self.context.get('request')
         return request and request.user == obj.owner
-    
+
+
 class AdminUserSerializer(serializers.ModelSerializer):
     files = FileStorageSerializer(source='files', many=True, read_only=True)
     total_files = serializers.SerializerMethodField()
@@ -117,6 +118,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
     def get_total_storage(self, obj):
         return sum(file.size for file in obj.files.all()) 
 
+
 class FileStorageUploadSerializer(serializers.ModelSerializer):
     file = serializers.FileField()
     comment = serializers.CharField(required=False, allow_blank=True)
@@ -131,7 +133,7 @@ class FileStorageUploadSerializer(serializers.ModelSerializer):
         owner = self.context['request'].user
         
         file_storage = FileStorage.objects.create(
-            name=file.name,
+            original_name=file.name,
             file=file,
             comment=comment,
             size=file.size,
