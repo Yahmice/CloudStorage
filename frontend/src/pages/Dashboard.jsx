@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import FileList from '../components/FileStorage/FileList';
 import FileUpload from '../components/FileStorage/FileUpload';
 import Navbar from '../components/Navigation/Navbar';
@@ -31,6 +31,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentUsername, setCurrentUsername] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  
+  // Получаем параметры из URL
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const userIdFromQuery = queryParams.get('user');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,8 +54,24 @@ const Dashboard = () => {
           return;
         }
 
+        const userData = await response.json();
+        setIsAdmin(userData.is_admin);
+        setCurrentUsername(userData.username);
+
+        // Если в URL указан ID пользователя и текущий пользователь - админ
+        if (userIdFromQuery && userData.is_admin) {
+          setSelectedUserId(userIdFromQuery);
+          
+          // Если есть информация о имени пользователя в state
+          if (location.state && location.state.username) {
+            setCurrentUsername(location.state.username + ' (просмотр администратором)');
+          } else {
+            setCurrentUsername('Просмотр пользователя #' + userIdFromQuery);
+          }
+        }
+
         // После успешной проверки аутентификации загружаем файлы
-        await fetchFiles();
+        await fetchFiles(userIdFromQuery && userData.is_admin ? userIdFromQuery : null);
       } catch (error) {
         console.error('Ошибка при проверке аутентификации:', error);
         navigate('/login');
@@ -58,11 +81,16 @@ const Dashboard = () => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, [navigate, userIdFromQuery, location.state]);
 
-  const fetchFiles = async () => {
+  const fetchFiles = async (userId = null) => {
     try {
-      const response = await fetch(`${API_URL}/files/`, {
+      let url = `${API_URL}/files/`;
+      if (userId) {
+        url += `?user_id=${userId}`;
+      }
+      
+      const response = await fetch(url, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
@@ -291,7 +319,7 @@ const Dashboard = () => {
     <>
       <Navbar />
       <div className="dashboard">
-        <h2>Файловое хранилище</h2>
+        <h2>Файловое хранилище {currentUsername && `- ${currentUsername}`}</h2>
         {error && (
           <div className="error-message" onClick={() => setError('')}>
             {error}
@@ -303,7 +331,21 @@ const Dashboard = () => {
           </div>
         )}
         
-        <FileUpload onUpload={handleUpload} />
+        {/* Не показываем форму загрузки, если админ просматривает чужие файлы */}
+        {(!selectedUserId || !isAdmin) && (
+          <FileUpload onUpload={handleUpload} />
+        )}
+        
+        {isAdmin && selectedUserId && (
+          <div className="admin-controls">
+            <button 
+              className="back-button" 
+              onClick={() => navigate('/admin')}
+            >
+              ← Вернуться к списку пользователей
+            </button>
+          </div>
+        )}
         
         <FileList
           files={files}

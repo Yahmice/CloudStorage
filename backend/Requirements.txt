@@ -14,3 +14,4 @@ whitenoise==6.6.0
 gunicorn==21.2.0
 djoser==2.2.2  # для аутентификации (видно по эндпоинтам в urls.py)
 djangorestframework-simplejwt==5.3.1  # для JWT токенов
+psycopg2-binary==2.9.9  # адаптер PostgreSQL

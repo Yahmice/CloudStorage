@@ -90,20 +90,6 @@ CSRF_TRUSTED_ORIGINS = [
    "http://89.104.67.132",
 ]
 
-# Session settings
-SESSION_COOKIE_DOMAIN = None
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_AGE = 1209600  # 2 недели в секундах
-
-# CSRF settings
-CSRF_COOKIE_DOMAIN = None
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_NAME = 'csrftoken'
-
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -111,11 +97,17 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
 }
 
 AUTH_USER_MODEL = 'myapp.CustomUser'
 
+# Сессионные настройки
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600 
+SESSION_COOKIE_SECURE = False 
+SESSION_COOKIE_HTTPONLY = True 
 
 ROOT_URLCONF = 'cloud.urls'
 
@@ -143,8 +135,12 @@ WSGI_APPLICATION = 'cloud.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'cloudstorage'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 

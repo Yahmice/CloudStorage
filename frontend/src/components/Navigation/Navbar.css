@@ -36,6 +36,21 @@
   color: #333;
 }
 
+.nav-link.admin {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.nav-link.admin:hover {
+  background-color: #bbdefb;
+}
+
+.nav-username {
+  margin-right: 10px;
+  color: #666;
+  font-weight: 500;
+}
+
 .nav-button {
   background-color: #dc3545;
   color: white;

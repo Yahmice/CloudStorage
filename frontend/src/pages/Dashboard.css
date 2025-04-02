@@ -192,6 +192,27 @@
   border: 1px solid #a5d6a7;
 }
 
+.admin-controls {
+  margin-bottom: 1rem;
+}
+
+.back-button {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #e0e0e0;
+}
+
 @media (max-width: 768px) {
   .dashboard {
     padding: 1rem;

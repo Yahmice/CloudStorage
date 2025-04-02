@@ -135,7 +135,19 @@ class FileListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        if request.user.is_admin:
+        # Проверяем, если в запросе указан user_id и текущий пользователь - админ
+        user_id = request.query_params.get('user_id')
+        
+        if user_id and request.user.is_admin:
+            try:
+                user = CustomUser.objects.get(id=user_id)
+                files = FileStorage.objects.filter(owner=user)
+            except CustomUser.DoesNotExist:
+                return Response(
+                    {'error': 'Пользователь не найден'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        elif request.user.is_admin:
             files = FileStorage.objects.all()
         else:
             files = FileStorage.objects.filter(owner=request.user)

@@ -1,14 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
+const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
+
 const Navbar = () => {
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [username, setUsername] = useState('');
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${API_URL}/profile/`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setIsAuthenticated(true);
+          setIsAdmin(userData.is_admin);
+          setUsername(userData.username);
+        } else {
+          setIsAuthenticated(false);
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('Ошибка при проверке аутентификации:', error);
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const csrfToken = document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
+      const response = await fetch(`${API_URL}/logout/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Ошибка при выходе:', error);
+    }
   };
 
   return (
@@ -19,7 +72,11 @@ const Navbar = () => {
       <div className="navbar-menu">
         {isAuthenticated ? (
           <>
+            <span className="nav-username">Привет, {username}</span>
             <Link to="/dashboard" className="nav-link">Хранилище</Link>
+            {isAdmin && (
+              <Link to="/admin" className="nav-link admin">Управление пользователями</Link>
+            )}
             <button onClick={handleLogout} className="nav-button">Выход</button>
           </>
         ) : (
