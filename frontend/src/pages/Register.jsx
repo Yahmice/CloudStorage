@@ -41,7 +41,7 @@ const Register = () => {
         credentials: 'include'
       });
 
-      // Получаем CSRF-токен из куки
+      // Получаем CSRF-токен из кукиc
       const csrfToken = document.cookie.split('; ')
         .find(row => row.startsWith('csrftoken='))
         ?.split('=')[1];
