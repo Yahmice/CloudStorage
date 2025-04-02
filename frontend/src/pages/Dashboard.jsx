@@ -35,10 +35,16 @@ const Dashboard = () => {
 
         if (!response.ok) {
           navigate('/login');
+          return;
         }
+
+        // После успешной проверки аутентификации загружаем файлы
+        await fetchFiles();
       } catch (error) {
         console.error('Ошибка при проверке аутентификации:', error);
         navigate('/login');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -48,7 +54,10 @@ const Dashboard = () => {
   const fetchFiles = async () => {
     try {
       const response = await fetch(`${API_URL}/files/`, {
-        headers: getHeaders()
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (!response.ok) {
@@ -59,8 +68,6 @@ const Dashboard = () => {
       setFiles(data);
     } catch (err) {
       setError('Ошибка при загрузке списка файлов');
-    } finally {
-      setLoading(false);
     }
   };
 
