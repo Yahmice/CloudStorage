@@ -187,9 +187,17 @@ const Dashboard = () => {
 
   const handleCopyLink = async (file) => {
     try {
+      // Получаем CSRF токен из куки
+      const csrfToken = document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
       const response = await fetch(`${API_URL}/files/${file.id}/share/`, {
         credentials: 'include',
-        headers: getHeaders()
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
       });
 
       if (!response.ok) {
