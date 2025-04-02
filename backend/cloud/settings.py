@@ -116,8 +116,6 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'myapp.CustomUser'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ROOT_URLCONF = 'cloud.urls'
 
@@ -201,6 +199,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 FILE_STORAGE_BASE_DIR = os.path.join(BASE_DIR, 'storage')
 FILE_STORAGE_URL = '/storage/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Создаем базовые директории для хранения файлов, если они не существуют
+STORAGE_DIRS = [
+    FILE_STORAGE_BASE_DIR,
+    MEDIA_ROOT,
+]
+
+for directory in STORAGE_DIRS:
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 # Настройки для загрузки файлов
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
