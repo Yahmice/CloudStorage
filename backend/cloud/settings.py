@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-)8&d5ytv2!l)nmj051458wu)5(7)--+pb(@5%85_8bjcc+kwep
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '89.104.67.132']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '89.104.67.132', '89.104.67.132:8000']
 
 
 # Application definition
@@ -101,9 +101,17 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Дополнительные настройки безопасности
 CSRF_COOKIE_SECURE = False  # Установите True в продакшене с HTTPS
-CSRF_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = True
-CSRF_COOKIE_SAMESITE = 'Lax'  # Или 'Strict' в продакшене
+CSRF_COOKIE_HTTPONLY = False  # False чтобы JavaScript мог читать токен
+CSRF_USE_SESSIONS = False  # Отключаем использование сессий для CSRF
+CSRF_COOKIE_SAMESITE = None  # Отключаем SameSite для разработки
+SESSION_COOKIE_SECURE = False  # Установите True в продакшене с HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = None  # Отключаем SameSite для разработки
+
+# Настройки для административного интерфейса
+ADMIN_URL = 'admin/'  # URL для административного интерфейса
+CSRF_COOKIE_NAME = 'csrftoken'  # Имя CSRF cookie
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'  # Имя заголовка CSRF
 
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
@@ -121,8 +129,6 @@ AUTH_USER_MODEL = 'myapp.CustomUser'
 # Сессионные настройки
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600 
-SESSION_COOKIE_SECURE = False 
-SESSION_COOKIE_HTTPONLY = True 
 
 ROOT_URLCONF = 'cloud.urls'
 
