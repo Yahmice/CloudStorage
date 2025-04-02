@@ -151,14 +151,11 @@ WSGI_APPLICATION = 'cloud.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME', 'cloudstorage'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-        'OPTIONS': {
-            'client_encoding': 'UTF8',
-        },
+        'NAME': 'cloudstorage',
+        'USER': 'svvift',
+        'PASSWORD': '134566789d',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
