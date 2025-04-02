@@ -60,8 +60,11 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://89.104.67.132",
     "http://89.104.67.132:8000",
+    "http://89.104.67.132:5173",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -87,10 +90,20 @@ CORS_ALLOW_HEADERS = [
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
-   "http://89.104.67.132",
-   "http://89.104.67.132:8000",
-   "http://89.104.67.132:5173",
+    "http://89.104.67.132",
+    "http://89.104.67.132:8000",
+    "http://89.104.67.132:5173",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
+
+# Дополнительные настройки безопасности
+CSRF_COOKIE_SECURE = False  # Установите True в продакшене с HTTPS
+CSRF_COOKIE_HTTPONLY = True
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_SAMESITE = 'Lax'  # Или 'Strict' в продакшене
 
 # Настройки Django REST Framework
 REST_FRAMEWORK = {
