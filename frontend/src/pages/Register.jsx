@@ -35,11 +35,28 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // Сначала получаем CSRF-токен, делая GET-запрос
+      const csrfResponse = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/register/`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      // Получаем CSRF-токен из куки
+      const csrfToken = document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
+      if (!csrfToken) {
+        throw new Error('Не удалось получить CSRF-токен');
+      }
+
+      // Отправляем запрос на регистрацию с CSRF-токеном
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/register/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
         },
         body: JSON.stringify(formData)
       });
@@ -49,10 +66,10 @@ const Register = () => {
       if (response.ok) {
         navigate('/login');
       } else {
-        setError(data.error || 'Произошла ошибка при регистрации');
+        setError(data.error || data.username || data.email || data.password || 'Произошла ошибка при регистрации');
       }
     } catch (error) {
-      setError('Произошла ошибка при подключении к серверу');
+      setError('Произошла ошибка при подключении к серверу: ' + error.message);
     } finally {
       setLoading(false);
     }
