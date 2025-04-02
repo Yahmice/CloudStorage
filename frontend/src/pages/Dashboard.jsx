@@ -77,9 +77,17 @@ const Dashboard = () => {
     formData.append('comment', comment);
 
     try {
+      // Получаем CSRF токен из куки
+      const csrfToken = document.cookie.split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+
       const response = await fetch(`${API_URL}/files/upload/`, {
         method: 'POST',
         credentials: 'include',
+        headers: {
+          'X-CSRFToken': csrfToken
+        },
         body: formData
       });
 
