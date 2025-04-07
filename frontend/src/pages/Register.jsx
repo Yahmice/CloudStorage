@@ -11,7 +11,7 @@ const Register = () => {
     password: "",
     password_confirm: ""
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -27,11 +27,39 @@ const Register = () => {
         [name]: ""
       }));
     }
+    
+    // Проверка совпадения паролей при изменении
+    if (name === 'password' || name === 'password_confirm') {
+      const password = name === 'password' ? value : formData.password;
+      const passwordConfirm = name === 'password_confirm' ? value : formData.password_confirm;
+      
+      if (password && passwordConfirm && password !== passwordConfirm) {
+        setError(prev => ({
+          ...prev,
+          password_confirm: "Пароли не совпадают"
+        }));
+      } else if (password && passwordConfirm && password === passwordConfirm) {
+        setError(prev => ({
+          ...prev,
+          password_confirm: ""
+        }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    
+    // Проверка совпадения паролей перед отправкой
+    if (formData.password !== formData.password_confirm) {
+      setError(prev => ({
+        ...prev,
+        password_confirm: "Пароли не совпадают"
+      }));
+      return;
+    }
+    
+    setError({});
     setLoading(true);
 
     try {
@@ -66,10 +94,23 @@ const Register = () => {
       if (response.ok) {
         navigate('/login');
       } else {
-        setError(data.error || data.username || data.email || data.password || 'Произошла ошибка при регистрации');
+        if (typeof data === 'object') {
+          // Обработка ошибок в формате {field: [error_message]}
+          const newErrors = {};
+          for (const [key, value] of Object.entries(data)) {
+            if (Array.isArray(value)) {
+              newErrors[key] = value[0];
+            } else {
+              newErrors[key] = value;
+            }
+          }
+          setError(newErrors);
+        } else {
+          setError({ general: data.error || 'Произошла ошибка при регистрации' });
+        }
       }
     } catch (error) {
-      setError('Произошла ошибка при подключении к серверу: ' + error.message);
+      setError({ general: 'Произошла ошибка при подключении к серверу: ' + error.message });
     } finally {
       setLoading(false);
     }
@@ -78,9 +119,9 @@ const Register = () => {
   return (
     <div className="register-container">
       <h2>Регистрация</h2>
-      {error && (
+      {error.general && (
         <div className="error-message general-error">
-          {error}
+          {error.general}
         </div>
       )}
       <form onSubmit={handleSubmit}>
