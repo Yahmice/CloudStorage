@@ -4,6 +4,8 @@ import FileList from '../components/FileStorage/FileList';
 import FileUpload from '../components/FileStorage/FileUpload';
 import Navbar from '../components/Navigation/Navbar';
 import './Dashboard.css';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
@@ -220,50 +222,30 @@ const Dashboard = () => {
 
   const handleCopyLink = async (file) => {
     try {
-      const response = await fetch(`${API_URL}/files/${file.id}/share/`, {
-        credentials: 'include',
-        headers: getHeaders()
-      });
-
-      if (!response.ok) {
-        throw new Error('Ошибка при получении ссылки');
-      }
-
-      const data = await response.json();
-      const shareUrl = `${import.meta.env.VITE_SERVER_URL}/api/files/shared/${data.share_link}/`;
+      const response = await axios.get(`/api/files/${file.id}/share/`);
+      console.log('Ответ сервера:', response.data);
       
-      try {
-        // Пробуем использовать Clipboard API
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(shareUrl);
-        } else {
-          // Альтернативный метод через временный input
-          const textArea = document.createElement('textarea');
-          textArea.value = shareUrl;
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-999999px';
-          textArea.style.top = '-999999px';
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          
-          try {
-            document.execCommand('copy');
-            textArea.remove();
-          } catch (err) {
-            console.error('Ошибка при копировании:', err);
-            textArea.remove();
-            throw new Error('Не удалось скопировать ссылку');
-          }
-        }
-        setSuccessMessage('Ссылка скопирована в буфер обмена');
-      } catch (clipboardError) {
-        console.error('Ошибка при копировании в буфер обмена:', clipboardError);
-        setError('Не удалось скопировать ссылку в буфер обмена');
+      const shareLink = response.data.share_link;
+      console.log('Полученный share_link:', shareLink);
+      
+      const shareUrl = `${import.meta.env.VITE_SERVER_URL}/api/shared/${shareLink}`;
+      console.log('Сформированная ссылка:', shareUrl);
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
       }
-    } catch (err) {
-      console.error('Ошибка при копировании ссылки:', err);
-      setError('Ошибка при копировании ссылки');
+      
+      toast.success('Ссылка скопирована в буфер обмена');
+    } catch (error) {
+      console.error('Ошибка при копировании ссылки:', error);
+      toast.error('Ошибка при копировании ссылки');
     }
   };
 

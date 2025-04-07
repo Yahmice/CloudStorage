@@ -232,7 +232,10 @@ class FileShareView(APIView):
             file_storage.share_link_expiry = timezone.now() + timedelta(days=7)
             file_storage.save()
         
-        return Response({'share_link': str(file_storage.share_link)})
+        # Возвращаем только UUID ссылки
+        share_link = str(file_storage.share_link)
+        print(f"Возвращаем share_link: {share_link}, тип: {type(share_link)}")
+        return Response({'share_link': share_link})
 
 
 class FileRenameView(APIView):
@@ -262,25 +265,26 @@ class SharedFileView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, share_link):
+        print(f"Попытка доступа к файлу по share_link: {share_link}, тип: {type(share_link)}")
         try:
-            print(f"Попытка доступа к файлу по ссылке: {share_link}")
-            file_storage = FileStorage.objects.get(
-                share_link=share_link,
-                share_link_expiry__gt=timezone.now()
-            )
-            file_storage.update_last_download()
-            response = FileResponse(file_storage.file)
+            # Преобразуем share_link из строки в UUID
+            share_link_uuid = uuid.UUID(str(share_link))
+            print(f"Успешно преобразовано в UUID: {share_link_uuid}")
+            
+            file_storage = FileStorage.objects.get(share_link=share_link_uuid)
+            print(f"Найден файл: {file_storage.original_name}, тип контента: {file_storage.file.content_type}")
+            
+            if file_storage.share_link_expiry and file_storage.share_link_expiry < timezone.now():
+                return Response({'error': 'Ссылка истекла'}, status=400)
+
+            response = FileResponse(file_storage.file, as_attachment=False)
             response['Content-Disposition'] = f'inline; filename="{file_storage.original_name}"'
             return response
         except FileStorage.DoesNotExist:
-            print(f"Файл не найден для ссылки: {share_link}")
-            return Response(
-                {'error': 'Файл не найден или ссылка истекла'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({'error': 'Файл не найден'}, status=404)
+        except ValueError as e:
+            print(f"Ошибка преобразования UUID: {e}")
+            return Response({'error': 'Неверный формат ссылки'}, status=400)
         except Exception as e:
-            print(f"Ошибка при доступе к файлу: {str(e)}")
-            return Response(
-                {'error': f'Произошла ошибка: {str(e)}'}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            ) 
+            print(f"Неожиданная ошибка: {e}")
+            return Response({'error': str(e)}, status=500) 
