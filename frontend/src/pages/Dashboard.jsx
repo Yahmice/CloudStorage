@@ -230,18 +230,18 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      const shareUrl = data.share_link;
+      const shareUrl = `${window.location.origin}/shared/${data.share_link}`;
       
       try {
         await navigator.clipboard.writeText(shareUrl);
-        setSuccessMessage('Ссылка для просмотра скопирована в буфер обмена');
+        setSuccessMessage('Ссылка скопирована в буфер обмена');
       } catch (clipboardError) {
         console.error('Ошибка при копировании в буфер обмена:', clipboardError);
-        setSuccessMessage(`Ссылка для просмотра: ${shareUrl} (скопируйте вручную)`);
+        setError('Не удалось скопировать ссылку в буфер обмена');
       }
     } catch (err) {
       console.error('Ошибка при копировании ссылки:', err);
-      setError(`Ошибка при копировании ссылки: ${err.message}`);
+      setError('Ошибка при копировании ссылки');
     }
   };
 

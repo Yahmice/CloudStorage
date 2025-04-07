@@ -44,8 +44,8 @@ class CustomUser(AbstractUser):
 
 class FileStorage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    original_name = models.CharField(max_length=255, default='')  # Добавляем значение по умолчанию
-    name = models.CharField(max_length=255)  # Уникальное имя файла в системе
+    original_name = models.CharField(max_length=255, default='')
+    name = models.CharField(max_length=255)
     file = models.FileField(upload_to='files/')
     comment = models.TextField(blank=True, null=True)
     size = models.BigIntegerField()
@@ -64,10 +64,12 @@ class FileStorage(models.Model):
         if not self.share_link_expiry:
             self.share_link_expiry = timezone.now() + timezone.timedelta(days=7)
         
-        # Генерируем уникальное имя файла
-        if not self.name:
-            file_ext = os.path.splitext(self.original_name)[1]
+        # Генерируем уникальное имя файла только если оно еще не установлено
+        if not self.name and self.file:
+            file_ext = os.path.splitext(self.file.name)[1]
             self.name = f"{self.id}{file_ext}"
+            # Сохраняем оригинальное имя файла
+            self.original_name = self.file.name
         
         super().save(*args, **kwargs)
 
