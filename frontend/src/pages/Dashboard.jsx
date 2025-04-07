@@ -218,9 +218,9 @@ const Dashboard = () => {
     }
   };
 
-  const handleCopyLink = async (fileId) => {
+  const handleCopyLink = async (file) => {
     try {
-      const response = await fetch(`${API_URL}/files/${fileId}/share/`, {
+      const response = await fetch(`${API_URL}/files/${file.id}/share/`, {
         credentials: 'include',
         headers: getHeaders()
       });
@@ -230,7 +230,7 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      const shareUrl = `${window.location.origin}/shared/${data.share_link}`;
+      const shareUrl = data.share_link;
       
       try {
         await navigator.clipboard.writeText(shareUrl);

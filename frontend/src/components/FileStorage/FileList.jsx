@@ -92,7 +92,7 @@ const FileList = ({ files, onDelete, onRename, onDownload, onCopyLink, isAdmin }
                       </button>
                     </>
                   )}
-                  <button onClick={() => onCopyLink(file.id)} className="action-button copy">
+                  <button onClick={() => onCopyLink(file)} className="action-button copy">
                     Копировать ссылку
                   </button>
                 </div>
