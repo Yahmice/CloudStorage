@@ -13,19 +13,21 @@
 
 ### 1. Подготовка сервера
 ```bash
-#ыорваопрлдвап
+# Обновление системы
 sudo apt update && sudo apt upgrade -y
 
-sudo apt install python3 python3-pip python3-venv nginx gunicorn
+# Установка необходимых пакетов
+sudo apt install python3 python3-pip python3-venv nginx gunicorn postgresq postgresql-contrib -y
 ```
 
 ### 2. Настройка базы данных
 ```bash
+# Создание базы данных и пользователя
 sudo -u postgres psql
 CREATE DATABASE cloudstorage;
 CREATE USER clouduser WITH PASSWORD 'your_password';
 ALTER ROLE clouduser SET client_encoding TO 'utf-8';
-ALTER ROLE clouduser SET default_transaction_isolation
+ALTER ROLE clouduser SET default_transaction_isolation TO 'read commited';
 ALTER ROLE clouduser SET timezone TO 'UTC';
 GRANT ALL PRIVILEGES ON DATABASE cloudstorage TO clouduser;
 \q
@@ -33,19 +35,24 @@ GRANT ALL PRIVILEGES ON DATABASE cloudstorage TO clouduser;
 
 ### 3. Настройка бекенда
 ```bash
-
+# Клонирование репозитория
 git clone https://github.com/Yahmice/CloudStorage/
 cd CloudStorage/backend
 
+# Создание виртуального окружения
 python3 -m venv env
 source env/bin/activate
 
+# Установка зависимостей
 pip install -r Requirements.txt
 
+# Применение миграций
 python manage.py migrate
 
+# Создание суперпользователя
 python manage.py createsuperuser
 
+# Сбор статических файлов
 python manage.py collectstatic
 ```
 
@@ -53,14 +60,14 @@ python manage.py collectstatic
 ```bash
 cd ../frontend
 
+# Установка зависимостей
 npm install
 
+# Сборка проекта
 npm run build
 ```
 ### 5. Настройка бекенда
-
-python manage.py collectstatic
-
+# Создаем файл gunicorn.service с содержимым
 sudo nano /etc/systemd/system/gunicorn.service
 
 ```
@@ -79,6 +86,7 @@ WantedBy=multi-user.target
 ```
 
 ## 6. Настройка Nginx
+# Создаём файл для nginx
 sudo nano ../../etc/nginx/sites-enabled/your_project_name
 ```
 server {
