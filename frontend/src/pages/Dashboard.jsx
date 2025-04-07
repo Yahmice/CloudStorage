@@ -230,7 +230,7 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      const shareUrl = data.share_link;
+      const shareUrl = `${import.meta.env.VITE_SERVER_URL}/api/files/shared/${data.share_link}/`;
       
       try {
         // Пробуем использовать Clipboard API
