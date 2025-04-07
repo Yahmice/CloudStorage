@@ -233,7 +233,29 @@ const Dashboard = () => {
       const shareUrl = data.share_link;
       
       try {
-        await navigator.clipboard.writeText(shareUrl);
+        // Пробуем использовать Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          // Альтернативный метод через временный input
+          const textArea = document.createElement('textarea');
+          textArea.value = shareUrl;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          
+          try {
+            document.execCommand('copy');
+            textArea.remove();
+          } catch (err) {
+            console.error('Ошибка при копировании:', err);
+            textArea.remove();
+            throw new Error('Не удалось скопировать ссылку');
+          }
+        }
         setSuccessMessage('Ссылка скопирована в буфер обмена');
       } catch (clipboardError) {
         console.error('Ошибка при копировании в буфер обмена:', clipboardError);
