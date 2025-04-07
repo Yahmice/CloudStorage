@@ -232,10 +232,7 @@ class FileShareView(APIView):
             file_storage.share_link_expiry = timezone.now() + timedelta(days=7)
             file_storage.save()
         
-        base_url = settings.BASE_URL if hasattr(settings, 'BASE_URL') else request.build_absolute_uri('/')[:-1]
-        share_url = f"{base_url}/api/files/shared/{file_storage.share_link}/"
-        print(f"Генерация ссылки: {share_url}")
-        return Response({'share_link': share_url})
+        return Response({'share_link': str(file_storage.share_link)})
 
 
 class FileRenameView(APIView):
