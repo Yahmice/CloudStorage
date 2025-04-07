@@ -21,7 +21,7 @@ const FileList = ({ files, onDelete, onRename, onDownload, onCopyLink, isAdmin }
 
   const handleRename = (file) => {
     setEditingFile(file.id);
-    setNewName(file.name);
+    setNewName(file.original_name);
   };
 
   const handleSubmit = (fileId) => {
@@ -69,7 +69,7 @@ const FileList = ({ files, onDelete, onRename, onDownload, onCopyLink, isAdmin }
                     </button>
                   </div>
                 ) : (
-                  <span className="file-name">{file.name}</span>
+                  <span className="file-name">{file.original_name}</span>
                 )}
               </td>
               <td>{file.comment || '-'}</td>
@@ -92,7 +92,7 @@ const FileList = ({ files, onDelete, onRename, onDownload, onCopyLink, isAdmin }
                       </button>
                     </>
                   )}
-                  <button onClick={() => onCopyLink(file)} className="action-button copy">
+                  <button onClick={() => onCopyLink(file.id)} className="action-button copy">
                     Копировать ссылку
                   </button>
                 </div>
@@ -112,7 +112,8 @@ FileList.propTypes = {
   files: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
+      original_name: PropTypes.string.isRequired,
+      name: PropTypes.string,
       comment: PropTypes.string,
       size: PropTypes.number.isRequired,
       owner_username: PropTypes.string.isRequired,

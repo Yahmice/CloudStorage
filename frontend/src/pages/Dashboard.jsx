@@ -206,7 +206,7 @@ const Dashboard = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', file.name);
+      link.setAttribute('download', file.original_name);
       document.body.appendChild(link);
       link.click();
       link.remove();

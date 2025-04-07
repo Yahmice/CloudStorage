@@ -254,7 +254,7 @@ class FileRenameView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        file_storage.name = new_name
+        file_storage.original_name = new_name
         file_storage.save()
         
         serializer = FileStorageSerializer(file_storage, context={'request': request})
@@ -272,8 +272,8 @@ class SharedFileView(APIView):
                 share_link_expiry__gt=timezone.now()
             )
             file_storage.update_last_download()
-            response = FileResponse(file_storage.file, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{file_storage.original_name}"'
+            response = FileResponse(file_storage.file)
+            response['Content-Disposition'] = f'inline; filename="{file_storage.original_name}"'
             return response
         except FileStorage.DoesNotExist:
             print(f"Файл не найден для ссылки: {share_link}")
