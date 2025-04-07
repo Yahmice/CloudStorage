@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from django.http import FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -21,6 +21,7 @@ from .serializers import (
 import uuid
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.conf import settings
+from rest_framework.renderers import JSONRenderer
 
 
 class IsOwnerOrAdmin(BasePermission):
@@ -221,21 +222,39 @@ class FileDownloadView(APIView):
 
 class FileShareView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
+    renderer_classes = [JSONRenderer]  # Явно указываем, что возвращаем только JSON
 
     def get_object(self, pk):
-        return FileStorage.objects.get(pk=pk)
+        try:
+            return FileStorage.objects.get(pk=pk)
+        except FileStorage.DoesNotExist:
+            raise Http404("Файл не найден")
 
     def get(self, request, pk):
-        file_storage = self.get_object(pk)
-        if not file_storage.share_link:
-            file_storage.share_link = uuid.uuid4()
-            file_storage.share_link_expiry = timezone.now() + timedelta(days=7)
-            file_storage.save()
-        
-        # Возвращаем только UUID ссылки
-        share_link = str(file_storage.share_link)
-        print(f"Возвращаем share_link: {share_link}, тип: {type(share_link)}")
-        return Response({'share_link': share_link})
+        try:
+            file_storage = self.get_object(pk)
+            if not file_storage.share_link:
+                file_storage.share_link = uuid.uuid4()
+                file_storage.share_link_expiry = timezone.now() + timedelta(days=7)
+                file_storage.save()
+            
+            share_link = str(file_storage.share_link)
+            return Response(
+                {'share_link': share_link},
+                content_type='application/json'
+            )
+        except Http404 as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_404_NOT_FOUND,
+                content_type='application/json'
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content_type='application/json'
+            )
 
 
 class FileRenameView(APIView):

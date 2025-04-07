@@ -222,30 +222,36 @@ const Dashboard = () => {
 
   const handleCopyLink = async (file) => {
     try {
-      const response = await axios.get(`/api/files/${file.id}/share/`);
-      console.log('Ответ сервера:', response.data);
-      
-      const shareLink = response.data.share_link;
-      console.log('Полученный share_link:', shareLink);
-      
-      const shareUrl = `${import.meta.env.VITE_SERVER_URL}/api/shared/${shareLink}`;
-      console.log('Сформированная ссылка:', shareUrl);
-      
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(shareUrl);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = shareUrl;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-      
-      toast.success('Ссылка скопирована в буфер обмена');
+        const response = await axios.get(`${API_URL}/files/${file.id}/share/`, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        if (!response.data || !response.data.share_link) {
+            throw new Error('Неверный формат ответа от сервера');
+        }
+        
+        const shareLink = response.data.share_link;
+        const shareUrl = `${import.meta.env.VITE_SERVER_URL}/api/shared/${shareLink}`;
+        
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(shareUrl);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = shareUrl;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
+        
+        toast.success('Ссылка скопирована в буфер обмена');
     } catch (error) {
-      console.error('Ошибка при копировании ссылки:', error);
-      toast.error('Ошибка при копировании ссылки');
+        console.error('Ошибка при копировании ссылки:', error);
+        toast.error('Ошибка при копировании ссылки');
     }
   };
 
