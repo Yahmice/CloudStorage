@@ -102,21 +102,20 @@ class FileStorageSerializer(serializers.ModelSerializer):
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
-    files = FileStorageSerializer(source='files', many=True, read_only=True)
     total_files = serializers.SerializerMethodField()
     total_storage = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'username', 'email', 'is_staff', 'date_joined', 
-                 'files', 'total_files', 'total_storage')
+        fields = ('id', 'username', 'email', 'is_admin', 'date_joined', 
+                 'total_files', 'total_storage')
         read_only_fields = ('date_joined',)
 
     def get_total_files(self, obj):
-        return obj.files.count()
+        return FileStorage.objects.filter(owner=obj).count()
 
     def get_total_storage(self, obj):
-        return sum(file.size for file in obj.files.all()) 
+        return sum(file.size for file in FileStorage.objects.filter(owner=obj))
 
 
 class FileStorageUploadSerializer(serializers.ModelSerializer):

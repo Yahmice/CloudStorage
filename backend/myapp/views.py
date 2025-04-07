@@ -125,17 +125,55 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     serializer_class = AdminUserSerializer
     permission_classes = [IsAdminUser]
 
+    def list(self, request):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Ошибка при получении списка пользователей: {str(e)}")
+            return Response(
+                {'error': f'Ошибка при получении пользователей: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def retrieve(self, request, pk=None):
+        try:
+            user = self.get_object()
+            serializer = self.get_serializer(user)
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Ошибка при получении пользователя {pk}: {str(e)}")
+            return Response(
+                {'error': f'Ошибка при получении пользователя: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
     @action(detail=True, methods=['post'])
     def toggle_admin(self, request, pk=None):
-        user = self.get_object()
-        user.is_admin = not user.is_admin
-        user.save()
-        return Response({'status': 'success', 'is_admin': user.is_admin})
+        try:
+            user = self.get_object()
+            user.is_admin = not user.is_admin
+            user.save()
+            return Response({'status': 'success', 'is_admin': user.is_admin})
+        except Exception as e:
+            print(f"Ошибка при изменении прав администратора для пользователя {pk}: {str(e)}")
+            return Response(
+                {'error': f'Ошибка при изменении прав администратора: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=True, methods=['get'])
     def storage_info(self, request, pk=None):
-        user = self.get_object()
-        return Response(user.get_storage_info())
+        try:
+            user = self.get_object()
+            return Response(user.get_storage_info())
+        except Exception as e:
+            print(f"Ошибка при получении информации о хранилище пользователя {pk}: {str(e)}")
+            return Response(
+                {'error': f'Ошибка при получении информации о хранилище: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class FileListView(APIView):
