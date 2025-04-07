@@ -259,6 +259,7 @@ const Dashboard = () => {
         
         if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(shareUrl);
+            toast.success('Ссылка скопирована в буфер обмена');
         } else {
             const textArea = document.createElement('textarea');
             textArea.value = shareUrl;
@@ -266,9 +267,8 @@ const Dashboard = () => {
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
+            toast.success('Ссылка скопирована в буфер обмена');
         }
-        
-        toast.success('Ссылка скопирована в буфер обмена');
     } catch (error) {
         console.error('Ошибка при копировании ссылки:', error);
         toast.error('Ошибка при копировании ссылки');
