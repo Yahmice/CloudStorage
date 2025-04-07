@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import './Login.css';
 import './auth.css';
@@ -11,6 +11,25 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [csrfToken, setCsrfToken] = useState('');
+
+  // Получаем CSRF-токен при загрузке компонента
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        await fetch(`${import.meta.env.VITE_SERVER_URL}/api/login/`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const token = getCookie('csrftoken');
+        setCsrfToken(token);
+      } catch (err) {
+        console.error('Ошибка при получении CSRF-токена:', err);
+      }
+    };
+    
+    fetchCsrfToken();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,20 +52,28 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const csrfResponse = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/login/`, {
-        method: 'GET',
-        credentials: 'include',
-      });
+      // Получаем актуальный CSRF-токен из кук
+      const currentToken = getCookie('csrftoken') || csrfToken;
+      
+      if (!currentToken) {
+        throw new Error('CSRF-токен не найден. Пожалуйста, обновите страницу.');
+      }
 
+      console.log('Используемый CSRF-токен:', currentToken);
+      
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/login/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
+          'X-CSRFToken': currentToken,
         },
         body: JSON.stringify({ username: formData.username, password: formData.password })
       });
+
+      if (response.status === 403) {
+        throw new Error('Ошибка авторизации: отказано в доступе (403). Возможно, проблема с CSRF-токеном.');
+      }
 
       const data = await response.json();
 
@@ -56,8 +83,8 @@ const Login = () => {
         setError(data.error || 'Произошла ошибка при входе');
       }
     } catch (error) {
-      console.error('Ошибка:', error);
-      setError('Произошла ошибка при подключении к серверу');
+      console.error('Ошибка при входе:', error);
+      setError(error.message || 'Произошла ошибка при подключении к серверу');
     } finally {
       setLoading(false);
     }
@@ -68,6 +95,7 @@ const Login = () => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
   };
 
   return (

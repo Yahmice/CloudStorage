@@ -74,9 +74,12 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response({'detail': 'CSRF cookie set'})
+        # Установка CSRF-токена в cookie
+        response = Response({'detail': 'CSRF cookie set'})
+        response['X-CSRFToken'] = request.META.get('CSRF_COOKIE', '')
+        return response
 
-    @method_decorator(csrf_protect)
+    # @method_decorator(csrf_protect)
     def post(self, request):
         try:
             serializer = LoginSerializer(data=request.data)
@@ -85,13 +88,17 @@ class LoginView(APIView):
                 login(request, user)
                 response = Response({
                     'user_id': user.id,
-                    'username': user.username
+                    'username': user.username,
+                    'is_admin': user.is_admin
                 })
+                # Обновляем CSRF токен в ответе
+                response['X-CSRFToken'] = request.META.get('CSRF_COOKIE', '')
                 return response
             return Response({
                 'error': 'Неверное имя пользователя или пароль'
             }, status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
+            print(f"Ошибка при авторизации: {str(e)}")
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
