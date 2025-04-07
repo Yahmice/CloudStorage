@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // Импортируем хук для доступа к глобальному состоянию
 import FileList from '../components/FileStorage/FileList';
 import FileUpload from '../components/FileStorage/FileUpload';
 import Navbar from '../components/Navigation/Navbar';
@@ -44,8 +45,9 @@ const getCookie = (name) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  // Используем глобальное состояние авторизации
+  const { isAuthenticated, isAdmin, username, loading: authLoading } = useAuth();
   const [files, setFiles] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -58,48 +60,41 @@ const Dashboard = () => {
   const userIdFromQuery = queryParams.get('user');
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API_URL}/profile/`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+    // Если пользователь не авторизован и загрузка авторизации завершена - редирект на страницу входа
+    if (!authLoading && !isAuthenticated) {
+      navigate('/login');
+      return;
+    }
 
-        if (!response.ok) {
-          navigate('/login');
-          return;
+    const fetchData = async () => {
+      setLoading(true);
+      // Если авторизован, устанавливаем имя пользователя из глобального контекста
+      setCurrentUsername(username);
+
+      // Если в URL указан ID пользователя и текущий пользователь - админ
+      if (userIdFromQuery && isAdmin) {
+        setSelectedUserId(userIdFromQuery);
+        
+        // Если есть информация о имени пользователя в state
+        if (location.state && location.state.username) {
+          setCurrentUsername(location.state.username + ' (просмотр администратором)');
+        } else {
+          setCurrentUsername('Просмотр пользователя #' + userIdFromQuery);
         }
-
-        const userData = await response.json();
-        setIsAdmin(userData.is_admin);
-        setCurrentUsername(userData.username);
-
-        // Если в URL указан ID пользователя и текущий пользователь - админ
-        if (userIdFromQuery && userData.is_admin) {
-          setSelectedUserId(userIdFromQuery);
-          
-          // Если есть информация о имени пользователя в state
-          if (location.state && location.state.username) {
-            setCurrentUsername(location.state.username + ' (просмотр администратором)');
-          } else {
-            setCurrentUsername('Просмотр пользователя #' + userIdFromQuery);
-          }
-        }
-
-        // После успешной проверки аутентификации загружаем файлы
-        await fetchFiles(userIdFromQuery && userData.is_admin ? userIdFromQuery : null);
-      } catch (error) {
-        console.error('Ошибка при проверке аутентификации:', error);
-        navigate('/login');
-      } finally {
-        setLoading(false);
       }
+
+      // Загружаем файлы, если пользователь авторизован
+      if (isAuthenticated) {
+        await fetchFiles(userIdFromQuery && isAdmin ? userIdFromQuery : null);
+      }
+      
+      setLoading(false);
     };
 
-    checkAuth();
-  }, [navigate, userIdFromQuery, location.state]);
+    if (!authLoading) {
+      fetchData();
+    }
+  }, [navigate, userIdFromQuery, location.state, isAuthenticated, isAdmin, username, authLoading]);
 
   const fetchFiles = async (userId = null) => {
     try {
