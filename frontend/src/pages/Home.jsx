@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Home.css';
 
 const Home = () => {
+  const { isAuthenticated, isAdmin } = useAuth();
+
   return (
     <div className="home-container">
       <div className="home-content">
@@ -10,22 +13,27 @@ const Home = () => {
         <p className="home-description">
           Безопасное хранение и управление вашими файлами в облаке
         </p>
-        <div className="home-buttons">
-          <Link to="/login" className="home-button primary">
-            Войти
-          </Link>
-          <Link to="/register" className="home-button secondary">
-            Регистрация
-          </Link>
-        </div>
-        <a 
-          href={`${import.meta.env.VITE_SERVER_URL}/admin/`}
-          className="admin-button"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Панель администратора
-        </a>
+        {!isAuthenticated ? (
+          <div className="home-buttons">
+            <Link to="/login" className="home-button primary">
+              Войти
+            </Link>
+            <Link to="/register" className="home-button secondary">
+              Регистрация
+            </Link>
+          </div>
+        ) : (
+          <div className="home-buttons">
+            <Link to="/dashboard" className="home-button primary">
+              Перейти в хранилище
+            </Link>
+            {isAdmin && (
+              <Link to="/admin" className="home-button secondary">
+                Панель администратора
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

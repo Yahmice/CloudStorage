@@ -61,7 +61,6 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            login(request, user)  # Автоматический вход после регистрации
             return Response({
                 'user_id': user.id,
                 'username': user.username

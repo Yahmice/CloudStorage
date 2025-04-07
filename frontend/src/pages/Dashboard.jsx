@@ -218,19 +218,11 @@ const Dashboard = () => {
     }
   };
 
-  const handleCopyLink = async (file) => {
+  const handleCopyLink = async (fileId) => {
     try {
-      // Получаем CSRF токен из куки
-      const csrfToken = document.cookie.split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-
-      const response = await fetch(`${API_URL}/files/${file.id}/share/`, {
+      const response = await fetch(`${API_URL}/files/${fileId}/share/`, {
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        }
+        headers: getHeaders()
       });
 
       if (!response.ok) {
@@ -238,52 +230,14 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      console.log('Полученные данные для ссылки:', data);
+      const shareUrl = data.share_link;
       
-      if (!data.share_link) {
-        throw new Error('Ссылка для копирования не найдена в ответе сервера');
-      }
-
-      // Преобразуем URL, чтобы он соответствовал текущему окружению
-      const originalUrl = new URL(data.share_link);
-      const baseUrl = getBaseUrl();
-      
-      // Получаем UUID из пути
-      // URL будет вида /api/files/shared/uuid/
-      const uuidMatch = originalUrl.pathname.match(/\/api\/files\/shared\/([^/]+)/);
-      const shareUuid = uuidMatch ? uuidMatch[1] : originalUrl.pathname.split('/').pop().replace('/', '');
-      
-      // Формируем новый URL с нужным хостом
-      const shareUrl = `${baseUrl}/api/files/shared/${shareUuid}/`;
-      console.log('Сформированная ссылка:', shareUrl);
-
       try {
         await navigator.clipboard.writeText(shareUrl);
-        setSuccessMessage('Ссылка скопирована в буфер обмена');
+        setSuccessMessage('Ссылка для просмотра скопирована в буфер обмена');
       } catch (clipboardError) {
         console.error('Ошибка при копировании в буфер обмена:', clipboardError);
-        // Показываем ссылку пользователю
-        setSuccessMessage(`Ссылка: ${shareUrl} (скопируйте вручную)`);
-        
-        // Альтернативный способ копирования через DOM (не требует разрешений)
-        const textarea = document.createElement('textarea');
-        textarea.value = shareUrl;
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        
-        try {
-          const successful = document.execCommand('copy');
-          if (successful) {
-            setSuccessMessage('Ссылка скопирована в буфер обмена');
-          } else {
-            setSuccessMessage(`Ссылка: ${shareUrl} (скопируйте вручную)`);
-          }
-        } catch (e) {
-          setSuccessMessage(`Ссылка: ${shareUrl} (скопируйте вручную)`);
-        }
-        
-        document.body.removeChild(textarea);
+        setSuccessMessage(`Ссылка для просмотра: ${shareUrl} (скопируйте вручную)`);
       }
     } catch (err) {
       console.error('Ошибка при копировании ссылки:', err);
