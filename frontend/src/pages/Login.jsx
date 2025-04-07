@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import './Login.css';
 import './auth.css';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { checkAuth } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -78,6 +80,7 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        await checkAuth();
         navigate('/dashboard');
       } else {
         setError(data.error || 'Произошла ошибка при входе');
