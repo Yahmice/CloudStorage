@@ -1,43 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
 const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [username, setUsername] = useState('');
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API_URL}/profile/`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          setIsAuthenticated(true);
-          setIsAdmin(userData.is_admin);
-          setUsername(userData.username);
-        } else {
-          setIsAuthenticated(false);
-          setIsAdmin(false);
+  const checkAuth = async () => {
+    try {
+      const response = await fetch(`${API_URL}/profile/`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Ошибка при проверке аутентификации:', error);
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setIsAuthenticated(true);
+        setIsAdmin(userData.is_admin);
+        setUsername(userData.username);
+      } else {
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setUsername('');
       }
-    };
+    } catch (error) {
+      console.error('Ошибка при проверке аутентификации:', error);
+      setIsAuthenticated(false);
+      setIsAdmin(false);
+      setUsername('');
+    }
+  };
 
+  // Проверяем авторизацию при первом рендеринге и изменении маршрута
+  useEffect(() => {
     checkAuth();
-  }, []);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -57,6 +61,7 @@ const Navbar = () => {
       if (response.ok) {
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setUsername('');
         navigate('/login');
       }
     } catch (error) {

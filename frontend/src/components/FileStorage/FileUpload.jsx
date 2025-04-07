@@ -2,6 +2,9 @@ import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import './FileUpload.css';
 
+// Максимальный размер файла - 1 МБ (в байтах)
+const MAX_FILE_SIZE = 1 * 1024 * 1024;
+
 const FileUpload = ({ onUpload }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [comment, setComment] = useState('');
@@ -12,6 +15,17 @@ const FileUpload = ({ onUpload }) => {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Проверка размера файла
+      if (file.size > MAX_FILE_SIZE) {
+        setError(`Размер файла не должен превышать 1 МБ. Текущий размер: ${(file.size / (1024 * 1024)).toFixed(2)} МБ`);
+        setSelectedFile(null);
+        // Очищаем поле для возможности повторного выбора того же файла
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+      
       setSelectedFile(file);
       setError('');
     }
@@ -21,6 +35,12 @@ const FileUpload = ({ onUpload }) => {
     e.preventDefault();
     if (!selectedFile) {
       setError('Пожалуйста, выберите файл');
+      return;
+    }
+
+    // Повторная проверка размера файла перед отправкой
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setError(`Размер файла не должен превышать 1 МБ. Текущий размер: ${(selectedFile.size / (1024 * 1024)).toFixed(2)} МБ`);
       return;
     }
 
@@ -44,6 +64,7 @@ const FileUpload = ({ onUpload }) => {
   return (
     <div className="file-upload">
       <h3>Загрузка нового файла</h3>
+      <p className="file-size-limit">Максимальный размер файла: 1 МБ</p>
       <form onSubmit={handleSubmit}>
         <div className="file-input-container">
           <input

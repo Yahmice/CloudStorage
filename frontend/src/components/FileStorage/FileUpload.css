@@ -7,8 +7,16 @@
 }
 
 .file-upload h3 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   color: #212529;
+}
+
+.file-size-limit {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
+  padding: 0;
+  text-align: left;
 }
 
 .file-input-container {
