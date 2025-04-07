@@ -6,7 +6,6 @@ import Navbar from '../components/Navigation/Navbar';
 import './Dashboard.css';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
-import SidebarMenu from '../components/Navigation/SidebarMenu';
 
 const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
@@ -315,7 +314,6 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <Navbar />
       <div className="dashboard-content">
-        <SidebarMenu />
         <div className="main-content">
           <h2>Файловое хранилище {currentUsername && `- ${currentUsername}`}</h2>
           {error && (
