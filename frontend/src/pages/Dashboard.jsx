@@ -5,7 +5,8 @@ import FileUpload from '../components/FileStorage/FileUpload';
 import Navbar from '../components/Navigation/Navbar';
 import './Dashboard.css';
 import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
+import SidebarMenu from '../components/Navigation/SidebarMenu';
 
 const API_URL = `${import.meta.env.VITE_SERVER_URL}/api`;
 
@@ -259,7 +260,11 @@ const Dashboard = () => {
         
         if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(shareUrl);
-            toast.success('Ссылка скопирована в буфер обмена');
+            // Явно показываем уведомление после копирования
+            toast.success('Ссылка скопирована в буфер обмена', {
+                duration: 3000,
+                position: 'top-right',
+            });
         } else {
             const textArea = document.createElement('textarea');
             textArea.value = shareUrl;
@@ -267,11 +272,18 @@ const Dashboard = () => {
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            toast.success('Ссылка скопирована в буфер обмена');
+            // Явно показываем уведомление после копирования
+            toast.success('Ссылка скопирована в буфер обмена', {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
     } catch (error) {
         console.error('Ошибка при копировании ссылки:', error);
-        toast.error('Ошибка при копировании ссылки');
+        toast.error('Ошибка при копировании ссылки', {
+            duration: 3000,
+            position: 'top-right',
+        });
     }
   };
 
@@ -300,47 +312,51 @@ const Dashboard = () => {
   }
 
   return (
-    <>
+    <div className="dashboard-container">
       <Navbar />
-      <div className="dashboard">
-        <h2>Файловое хранилище {currentUsername && `- ${currentUsername}`}</h2>
-        {error && (
-          <div className="error-message" onClick={() => setError('')}>
-            {error}
-          </div>
-        )}
-        {successMessage && (
-          <div className="success-message" onClick={() => setSuccessMessage('')}>
-            {successMessage}
-          </div>
-        )}
-        
-        {/* Не показываем форму загрузки, если админ просматривает чужие файлы */}
-        {(!selectedUserId || !isAdmin) && (
-          <FileUpload onUpload={handleUpload} />
-        )}
-        
-        {isAdmin && selectedUserId && (
-          <div className="admin-controls">
-            <button 
-              className="back-button" 
-              onClick={() => navigate('/admin')}
-            >
-              ← Вернуться к списку пользователей
-            </button>
-          </div>
-        )}
-        
-        <FileList
-          files={files}
-          onDelete={handleDelete}
-          onRename={handleRename}
-          onDownload={handleDownload}
-          onCopyLink={handleCopyLink}
-          isAdmin={isAdmin}
-        />
+      <div className="dashboard-content">
+        <SidebarMenu />
+        <div className="main-content">
+          <h2>Файловое хранилище {currentUsername && `- ${currentUsername}`}</h2>
+          {error && (
+            <div className="error-message" onClick={() => setError('')}>
+              {error}
+            </div>
+          )}
+          {successMessage && (
+            <div className="success-message" onClick={() => setSuccessMessage('')}>
+              {successMessage}
+            </div>
+          )}
+          
+          {/* Не показываем форму загрузки, если админ просматривает чужие файлы */}
+          {(!selectedUserId || !isAdmin) && (
+            <FileUpload onUpload={handleUpload} />
+          )}
+          
+          {isAdmin && selectedUserId && (
+            <div className="admin-controls">
+              <button 
+                className="back-button" 
+                onClick={() => navigate('/admin')}
+              >
+                ← Вернуться к списку пользователей
+              </button>
+            </div>
+          )}
+          
+          <FileList
+            files={files}
+            onDelete={handleDelete}
+            onRename={handleRename}
+            onDownload={handleDownload}
+            onCopyLink={handleCopyLink}
+            isAdmin={isAdmin}
+          />
+        </div>
       </div>
-    </>
+      <Toaster position="top-right" />
+    </div>
   );
 };
 
