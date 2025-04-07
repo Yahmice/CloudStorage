@@ -284,17 +284,19 @@ class SharedFileView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, share_link):
-        print(f"Попытка доступа к файлу по share_link: {share_link}, тип: {type(share_link)}")
         try:
             # Преобразуем share_link из строки в UUID
             share_link_uuid = uuid.UUID(str(share_link))
-            print(f"Успешно преобразовано в UUID: {share_link_uuid}")
             
             file_storage = FileStorage.objects.get(share_link=share_link_uuid)
-            print(f"Найден файл: {file_storage.original_name}, тип контента: {file_storage.file.content_type}")
             
             if file_storage.share_link_expiry and file_storage.share_link_expiry < timezone.now():
                 return Response({'error': 'Ссылка истекла'}, status=400)
+
+            # Увеличиваем счетчик скачиваний
+            file_storage.download_count += 1
+            file_storage.last_download = timezone.now()
+            file_storage.save(update_fields=['download_count', 'last_download'])
 
             response = FileResponse(file_storage.file, as_attachment=False)
             response['Content-Disposition'] = f'inline; filename="{file_storage.original_name}"'
@@ -302,8 +304,6 @@ class SharedFileView(APIView):
         except FileStorage.DoesNotExist:
             return Response({'error': 'Файл не найден'}, status=404)
         except ValueError as e:
-            print(f"Ошибка преобразования UUID: {e}")
             return Response({'error': 'Неверный формат ссылки'}, status=400)
         except Exception as e:
-            print(f"Неожиданная ошибка: {e}")
             return Response({'error': str(e)}, status=500) 

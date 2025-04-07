@@ -250,8 +250,12 @@ const Dashboard = () => {
             throw new Error('Неверный формат ответа от сервера');
         }
         
+        // Получаем только UUID из ответа сервера
         const shareLink = response.data.share_link;
+        
+        // Формируем правильный URL для общего доступа без дублирования
         const shareUrl = `${import.meta.env.VITE_SERVER_URL}/api/shared/${shareLink}`;
+        console.log('Сформированная ссылка:', shareUrl);
         
         if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(shareUrl);
