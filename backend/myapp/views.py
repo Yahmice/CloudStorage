@@ -293,10 +293,9 @@ class SharedFileView(APIView):
             if file_storage.share_link_expiry and file_storage.share_link_expiry < timezone.now():
                 return Response({'error': 'Ссылка истекла'}, status=400)
 
-            # Увеличиваем счетчик скачиваний
-            file_storage.download_count += 1
+            # Обновляем только дату последнего скачивания
             file_storage.last_download = timezone.now()
-            file_storage.save(update_fields=['download_count', 'last_download'])
+            file_storage.save(update_fields=['last_download'])
 
             response = FileResponse(file_storage.file, as_attachment=False)
             response['Content-Disposition'] = f'inline; filename="{file_storage.original_name}"'
