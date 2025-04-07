@@ -66,11 +66,12 @@ npm install
 # Сборка проекта
 npm run build
 ```
-### 5. Настройка бекенда
+### 5. Настройка gunicorn
+```bash
 # Создаем файл gunicorn.service с содержимым
 sudo nano /etc/systemd/system/gunicorn.service
 
-```
+
 [Unit]
 Description=gunicorn service
 After=network.target
@@ -86,9 +87,10 @@ WantedBy=multi-user.target
 ```
 
 ## 6. Настройка Nginx
+```bash
 # Создаём файл для nginx
 sudo nano ../../etc/nginx/sites-enabled/your_project_name
-```
+
 server {
   listen 80;
   server_name 89.104.67.132;
@@ -121,14 +123,14 @@ server {
 
 
 ### 7. Запуск приложения
-
+```bash
 sudo systemctl start gunicorn
 sudo systemctl enable gunicorn
 
 sydo systemctl start nginx
 
 sudo ufw allow 'Nginx Full'
-
+```
 
 
 
